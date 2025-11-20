@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rangement des livres</title>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div id="affichage"></div>
+    <script>
+        const svg = d3.select("#affichage")
+        .append("svg")
+        .attr("width",800)
+        .attr("height",800)
+        .style("border", "1px solid black"); // Pour voir les bordures du svg
+        
+        function creerCercleTapis(x,y,r){
+        svg.append("circle").attr("cx", x).attr("cy", y).attr("r", r).attr("fill", "white").attr("stroke", "black");
+        svg.append("line").attr("x1", x).attr("y1", y-r).attr("x2", x).attr("y2", y+r).attr("stroke", "black");
+        svg.append("line").attr("x1", x-r).attr("y1", y).attr("x2", x+r).attr("y2", y).attr("stroke", "black");
+        }
+
+        // Creer le tapis roulant
+        let rayon = 20;
+        for (let i=0; i<18; i++){
+            creerCercleTapis(10 + i*rayon*2, 700, rayon);
+        }
+    </script>
+</body>
+</html>
