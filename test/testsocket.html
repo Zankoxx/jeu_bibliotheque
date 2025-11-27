@@ -1,131 +1,98 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Des livres et des livres</title>
-</head>
-<body>
-    <!doctype html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Socket.IO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Test de Socket</title>
     <script src="/socket.io/socket.io.js"></script>
+    <script> var socket = io(); </script>
     <script>
-        var socket = io()
-        var nomJoueur = null
-        var numJoueur = null
+        var numJoueur = -1;
 
-        function entrerDansLaPartie (){
-            nomJoueur = document.getElementById("nom").value
-            socket.emit('entree', nomJoueur)
+        function demandeJoueurs() {
+            console.log('Demande des joueurs');
+            socket.emit('joueurs');
         }
+        socket.on('joueurs', nomsJoueurs => {
+            console.log(`Noms des joueurs reçus du serveur : ${nomJoueurs}`);
+            listeJoueurs.value = nomsJoueurs;
+        });
 
-        function sortieDeLaPartie () {
-            socket.emit('sortie', { numJoueur: numJoueur, nomJoueur: nomJoueur })
-            nomJoueur = null
-            numJoueur = null
+        function entrerDansLaPartie() {
+            let nom = nomJ.value;
+            console.log("Entrée de "+nom);
+            if (nom != "" && nom != " ") socket.emit('entree', nom);
         }
-
-        // Supprime les joueurs du tableau et arrête donc la connexion 
-        function resetJoueurs() {
-            socket.emit('reset')
-        }
-
-        function sendMsgEntree(input) {
-            const message = input.value.trim();
-            if (message != "" && message != " ") {
-                socket.emit('message', {
-                    "message" : message,
-                    "nomJoueur": nomJoueur
-                })
-                input.value = "";
-            }
-        }
-
-        function sendMsg(input) {
-            console.log("Envoi du message :", input.value)
-            document.getElementById("msg") =
-            if (message != "" && message != " ") {
-                socket.emit('message', {
-                    "message" : message,
-                    "nomJoueur": nomJoueur
-                })
-                input.value = "";
-            }
-        }
-
-        // Le serveur confirme que je suis entré dans la partie et me l'affiche
         socket.on('entree', data => {
-            if (!data.autorise) {
-                
-                return
-            }
-            numJoueur = data.numJoueur
-            
-        })
-        // Le serveur ajoute un joueur et le confirme au client
+            console.log("Le serveur confirme mon entrée avec numJoueur="+data.numJoueur);
+            numJoueur = data.numJoueur;
+            btentree.disabled = true;
+            btsortie.disabled = false;
+            listeJoueurs.textContent = data.nomsJoueurs;
+            numJ.textContent = data.numJoueur;
+        });
         socket.on('entreeAutreJoueur', data => {
-            numJoueur = data.numJoueur
-            
-        })
-        // Le serveur confirme que je suis sortie de la partie et me l'affiche
-        socket.on('sortie', () => {
-        
-        })
-        // Le serveur supprime un joueur et le confirme au client 
-        socket.on('sortieAutre', data => {
-            if (numJoueur != null && numJoueur > data.numJoueur) numJoueur--
-            numJoueur = data.numJoueur
-            
-        })
+            console.log("Le serveur confirme l'entrée de "+data.nomJoueur);
+            listeJoueurs.textContent = data.nomsJoueurs;
+        });
 
-        socket.on('reset', data => {
-            nomJoueur = null
-            numJoueur = null
-            // a Completer dcoumentId
-        })
+        function quitterLaPartie() {
+            let nom = nomJ.value;
+            console.log("Sortie de "+nom);
+            if (nom != "" && nom != " ") socket.emit('sortie', nom);
+        }
+        socket.on('sortie', data => {
+            console.log("Le serveur confirme ma sortie");
+            //console.dir(data);
+            numJoueur = -1;
+            nomJ.value = "";
+            numJ.textContent = "";
+            btentree.disabled = false;
+            btsortie.disabled = true;
+            listeJoueurs.textContent = data.nomsJoueurs;
+            messageServeur.textConteent = "";
+        });
+        socket.on('sortieAutreJoueur', data => {
+            console.log(`Le serveur confirme la sortie de $(data.nomJoueur) de numéro $(data.numJoueur)`);
+            if (numJoueur > data.numJoueur) {
+                numJoueur--;
+                numJ.textContent = numJoueur;
+            }
+            listeJoueurs.textContent = data.nomsJoueurs;
+            $("#messageServeur").text("");
+        });
 
-        
+        function envoiMessage(input) {
+            console.log("Envoi du message :", input.value)
+            socket.emit("message", {'numJoueur':numJoueur, 'texte':input.value});
+        }
+        socket.on('message', message => {
+            console.log("Réception du message :", message);
+            messages.value = messages.value+'\n'+message;
+            message.value = "";
+        });
 
-
-        // Reception du message envoyé par le serveur, qui sera affiché sur la textarea
-        socket.on('message', data => {
-            var messages = document.getElementById("messages")
-            messages.value += data.nomJoueur + "(Joueur " + (data.numJoueur) + ") : " + data.message + "\n"
-            messages.scrollTop = messages.scrollHeight
-        })
-
-
-
-        // Réception des messages serveur(Connexion,deconnexion etc..)
         socket.on('messageServeur', message => {
             console.log("Message serveur :", message);
-            messages.textContent = message;
-         });
-
-
-
-
-
+            messageServeur.textContent = message;
+        });
     </script>
 </head>
 <body>
-<h2>TEST de socket.io</h2>
-<p>Votre nom <input id="nom" type="text" /></p>
-<button id="connect" onClick="entrerDansLaPartie()">Entrer dans la partie</button>
-<button id="sortie" onClick="sortieDeLaPartie()" style="display:none;">Quitter la partie</button>
-<button id ="reset" onClick="resetJoueurs()">Reset</button>
-
-
-<div style="margin-top:50px;">
-<textarea rows="25" cols="50" id="messages" readonly></textarea>
-<input id="msg" type="text" onkeydown="if(event.key==='Enter') sendMsgEntree(this)"> <!-- Onkeydown pour envoyer un message avec une touche de clavier (ici entrée)-->
-<button id = "envoyer" onClick="sendMsg(input)">Envoyer</button>
+<div id ="joueurs">
+    Joueurs : <label id="listeJoueurs"></label> <br/>
+    Votre nom <input id="nomJ" type="text" /> Votre numéro : <label id="numJ"></label>
+    <button type="button" id="btentree" onClick="entrerDansLaPartie()">
+        Entrer dans la partie </button>
+    <button type="button" id="btsortie" disabled onClick="quitterLaPartie()">
+        Quitter la partie </button> <br/>
 </div>
+<hr/>
+Message du serveur : <label id="messageServeur"></label>
+<hr/>
+Votre message <input id="message" type="text" onChange="envoiMessage(this)"/> <br/>
+<textarea id="messages" rows="20" cols="75"></textarea>
 </body>
 </html>
-    
-</body>
-</html>
+
+

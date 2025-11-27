@@ -5,13 +5,13 @@ const server = http.createServer(app);
 const io = new require("socket.io")(server)
 
 app.get('/', (request, response) => {
-    response.sendFile('ExempleProfTestSocket.html', {root: __dirname});
+    response.sendFile('client_Hex_intro.html', {root: __dirname});
 });
 
 var nbJoueurs = 2;
 var joueurs = [];
 var jeton = -1;
-  
+
 server.listen(8888, () => {
     console.log('Le serveur écoute sur le port 8888');
 });
@@ -31,21 +31,19 @@ io.on('connection', (socket) => {
             if (!joueurs.includes(nomJoueur)) {
                 joueurs.push(nomJoueur);
                 console.dir(joueurs);
-                socket.emit('messageServeur', 'Vous avez rejoint la partie');
-                socket.broadcast.emit('messageServeur', `${nomJoueur} a rejoint la partie`);
                 if (joueurs.length == nbJoueurs) {
                     jeton = 0;
                     console.log("Le jeton passe à 0, la partie peut commencer");
-                    io.emit('messageServeur', 'la partie peut commencer');
+                    socket.emit('messageServeur', 'la partie peut commencer');
                 }
                 let nomsJoueurs = "";
                 for (let nom of joueurs) nomsJoueurs += nom+" ";
                 socket.emit('entree', {'nomJoueur':nomJoueur,
-                                       'numJoueur':joueurs.length-1,
-                                       'nomsJoueurs':nomsJoueurs});
+                    'numJoueur':joueurs.length-1,
+                    'nomsJoueurs':nomsJoueurs});
                 socket.broadcast.emit('entreeAutreJoueur',
-                                        {'nomJoueur':nomJoueur,
-                                        'nomsJoueurs':nomsJoueurs});
+                    {'nomJoueur':nomJoueur,
+                        'nomsJoueurs':nomsJoueurs});
             }
             else socket.emit('messageServeur', 'Nom de joueur déjà enregistré');
         else socket.emit('messageServeur', 'Nombre de joueurs déjà atteint !');
@@ -60,13 +58,11 @@ io.on('connection', (socket) => {
             let nomsJoueurs = "";
             for (let nom of joueurs) nomsJoueurs += nom+" ";
             socket.emit('sortie', {'nomJoueur':nomJoueur,
-                                    'nomsJoueurs':nomsJoueurs});
+                'nomsJoueurs':nomsJoueurs});
             socket.broadcast.emit('sortieAutreJoueur',
-                                    {'nomJoueur':nomJoueur, // Pour information
-                                    'numJoueur': index,
-                                    'nomsJoueurs':nomsJoueurs});
-            socket.emit('messageServeur', 'Vous avez quitté la partie');
-            socket.broadcast.emit('messageServeur', `${nomJoueur} a quitté la partie`);
+                {'nomJoueur':nomJoueur, // Pour information
+                    'numJoueur': index,
+                    'nomsJoueurs':nomsJoueurs});
         }
         else socket.emit('messageServeur', 'Joueur inconnu');
     });
