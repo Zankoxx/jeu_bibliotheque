@@ -12,21 +12,79 @@
     <script>
         const svg = d3.select("#affichage")
         .append("svg")
-        .attr("width",800)
-        .attr("height",800)
-        .style("border", "1px solid black"); // Pour voir les bordures du svg
+            .attr("viewBox", "0 0 800 800")  // <-- système interne
+            .style("width", "45%")          // <-- s'adapte à la largeur
+            .style("height", "98vh")         // Toute la hauteur
+            .style("border", "1px solid black"); // Pour voir les bordures du svg
+
         
-        function creerCercleTapis(x,y,r){
-        svg.append("circle").attr("cx", x).attr("cy", y).attr("r", r).attr("fill", "white").attr("stroke", "black");
-        svg.append("line").attr("x1", x).attr("y1", y-r).attr("x2", x).attr("y2", y+r).attr("stroke", "black");
-        svg.append("line").attr("x1", x-r).attr("y1", y).attr("x2", x+r).attr("y2", y).attr("stroke", "black");
+        // Fonctions pour créer les cercles
+        // Tapis1 = vertical + horizontal, Tapis2 = diagonales
+        function creerCercleTapis1(x,y,r){
+        svg.append("circle")
+            .attr("class", "tapis").attr("cx", x).attr("cy", y).attr("r", r).attr("fill", "white").attr("stroke", "black");
+        svg.append("line")
+            .attr("class", "tapis").attr("x1", x).attr("y1", y-r).attr("x2", x).attr("y2", y+r).attr("stroke", "black"); // Ligne verticale
+        svg.append("line")
+            .attr("class", "tapis").attr("x1", x-r).attr("y1", y).attr("x2", x+r).attr("y2", y).attr("stroke", "black"); // Ligne horizontale
         }
 
-        // Creer le tapis roulant
-        let rayon = 20;
-        for (let i=0; i<18; i++){
-            creerCercleTapis(10 + i*rayon*2, 700, rayon);
+        function creerCercleTapis2(x,y,r){
+        let d = r / Math.sqrt(2); // Pour avoir les lignes diagonales il faut cette valeur
+        svg.append("circle")
+            .attr("class", "tapis").attr("cx", x).attr("cy", y).attr("r", r).attr("fill", "white").attr("stroke", "black");
+        svg.append("line")
+            .attr("class", "tapis").attr("x1", x-d).attr("y1", y-d).attr("x2", x+d).attr("y2", y+d).attr("stroke", "black");
+        svg.append("line")
+            .attr("class", "tapis").attr("x1", x-d).attr("y1", y+d).attr("x2", x+d).attr("y2", y-d).attr("stroke", "black");
         }
+
+        let rayon = 20;
+        let nbCercles = 20;
+        let anim = false; // Si l'animation est en cours ou pas
+        let mode = false; // false = Tapis2, true = Tapis1
+        let animInterval = null;
+
+        // Affiche un tapis complet selon le mode
+        function dessinerTapis(mode) {
+            svg.selectAll(".tapis").remove();
+
+            for (let i = 0; i < nbCercles; i++) {
+                let x = 20 + i * rayon * 2;
+                let y = 780;
+
+                if (mode) creerCercleTapis1(x, y, rayon);
+                else creerCercleTapis2(x, y, rayon);
+            }
+        }
+
+        // Tapis de base avant de lanceer l'animation
+        dessinerTapis(mode); // mode = false de base donc c'est un Tapis2
+
+        // Fonction qui démarre l'animation
+        function startAnimation() {
+            if (anim == true) 
+                return; // Si animation deja en cours on relance pas
+            anim = true;
+
+            animInterval = setInterval(() => {
+                mode = !mode;
+                dessinerTapis(mode);
+            }, 200);
+        }
+
+        // Fonction qui stop l'animation
+        function stopAnimation() {
+            anim = false;
+            clearInterval(animInterval);
+        }
+
+
+        svg.append("line")
+            .attr("x1", 0).attr("y1", 600).attr("x2", 800).attr("y2", 600).attr("stroke", "black");
+
+        startAnimation()
+        stopAnimation()
     </script>
 </body>
 </html>
