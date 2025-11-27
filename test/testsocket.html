@@ -1,1 +1,131 @@
-html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Des livres et des livres</title>
+</head>
+<body>
+    <!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Socket.IO</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io()
+        var nomJoueur = null
+        var numJoueur = null
+
+        function entrerDansLaPartie (){
+            nomJoueur = document.getElementById("nom").value
+            socket.emit('entree', nomJoueur)
+        }
+
+        function sortieDeLaPartie () {
+            socket.emit('sortie', { numJoueur: numJoueur, nomJoueur: nomJoueur })
+            nomJoueur = null
+            numJoueur = null
+        }
+
+        // Supprime les joueurs du tableau et arrête donc la connexion 
+        function resetJoueurs() {
+            socket.emit('reset')
+        }
+
+        function sendMsgEntree(input) {
+            const message = input.value.trim();
+            if (message != "" && message != " ") {
+                socket.emit('message', {
+                    "message" : message,
+                    "nomJoueur": nomJoueur
+                })
+                input.value = "";
+            }
+        }
+
+        function sendMsg(input) {
+            console.log("Envoi du message :", input.value)
+            document.getElementById("msg") =
+            if (message != "" && message != " ") {
+                socket.emit('message', {
+                    "message" : message,
+                    "nomJoueur": nomJoueur
+                })
+                input.value = "";
+            }
+        }
+
+        // Le serveur confirme que je suis entré dans la partie et me l'affiche
+        socket.on('entree', data => {
+            if (!data.autorise) {
+                
+                return
+            }
+            numJoueur = data.numJoueur
+            
+        })
+        // Le serveur ajoute un joueur et le confirme au client
+        socket.on('entreeAutreJoueur', data => {
+            numJoueur = data.numJoueur
+            
+        })
+        // Le serveur confirme que je suis sortie de la partie et me l'affiche
+        socket.on('sortie', () => {
+        
+        })
+        // Le serveur supprime un joueur et le confirme au client 
+        socket.on('sortieAutre', data => {
+            if (numJoueur != null && numJoueur > data.numJoueur) numJoueur--
+            numJoueur = data.numJoueur
+            
+        })
+
+        socket.on('reset', data => {
+            nomJoueur = null
+            numJoueur = null
+            // a Completer dcoumentId
+        })
+
+        
+
+
+        // Reception du message envoyé par le serveur, qui sera affiché sur la textarea
+        socket.on('message', data => {
+            var messages = document.getElementById("messages")
+            messages.value += data.nomJoueur + "(Joueur " + (data.numJoueur) + ") : " + data.message + "\n"
+            messages.scrollTop = messages.scrollHeight
+        })
+
+
+
+        // Réception des messages serveur(Connexion,deconnexion etc..)
+        socket.on('messageServeur', message => {
+            console.log("Message serveur :", message);
+            messages.textContent = message;
+         });
+
+
+
+
+
+    </script>
+</head>
+<body>
+<h2>TEST de socket.io</h2>
+<p>Votre nom <input id="nom" type="text" /></p>
+<button id="connect" onClick="entrerDansLaPartie()">Entrer dans la partie</button>
+<button id="sortie" onClick="sortieDeLaPartie()" style="display:none;">Quitter la partie</button>
+<button id ="reset" onClick="resetJoueurs()">Reset</button>
+
+
+<div style="margin-top:50px;">
+<textarea rows="25" cols="50" id="messages" readonly></textarea>
+<input id="msg" type="text" onkeydown="if(event.key==='Enter') sendMsgEntree(this)"> <!-- Onkeydown pour envoyer un message avec une touche de clavier (ici entrée)-->
+<button id = "envoyer" onClick="sendMsg(input)">Envoyer</button>
+</div>
+</body>
+</html>
+    
+</body>
+</html>
