@@ -3,21 +3,21 @@ const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const io = new require("socket.io")(server)
-
+// Lancer un serveur
 app.get('/', (request, response) => {
     response.sendFile('ExempleProfTestSocket.html', {root: __dirname});
 });
 
-var nbJoueurs = 2;
-var joueurs = [];
-var jeton = -1;
+var nbJoueurs = 2; // Limite de nombre de joueurs Maxiumm
+var joueurs = []; // Liste des joueurs géré par le serveur
+// var jeton = -1; // a une utilité pour savoir a qui est le tout mais pas indispensable
   
 server.listen(8888, () => {
     console.log('Le serveur écoute sur le port 8888');
 });
-
+// Connexion globale de tous les joueurs
 io.on('connection', (socket) => {
-
+    //
     socket.on('joueurs', () => {
         let nomsJoueurs = "";
         for (let nom of joueurs) nomsJoueurs += nom+" ";
@@ -34,9 +34,9 @@ io.on('connection', (socket) => {
                 socket.emit('messageServeur', 'Vous avez rejoint la partie');
                 socket.broadcast.emit('messageServeur', `${nomJoueur} a rejoint la partie`);
                 if (joueurs.length == nbJoueurs) {
-                    jeton = 0;
+                    // jeton = 0;
                     console.log("Le jeton passe à 0, la partie peut commencer");
-                    io.emit('messageServeur', 'la partie peut commencer');
+                    io.emit('messageServeur', 'La partie peut commencer');
                 }
                 let nomsJoueurs = "";
                 for (let nom of joueurs) nomsJoueurs += nom+" ";
@@ -56,7 +56,7 @@ io.on('connection', (socket) => {
         let index = joueurs.indexOf(nomJoueur)
         if  (index != -1) {
             joueurs.splice(index, 1);
-            jeton = -1;
+            // jeton = -1;
             let nomsJoueurs = "";
             for (let nom of joueurs) nomsJoueurs += nom+" ";
             socket.emit('sortie', {'nomJoueur':nomJoueur,
@@ -70,14 +70,17 @@ io.on('connection', (socket) => {
         }
         else socket.emit('messageServeur', 'Joueur inconnu');
     });
-
+    // Envoi du message au client
     socket.on('message', data => {
         console.log("Message à diffuser de",data.numJoueur,":",data.texte);
         if (data.numJoueur == -1) socket.emit('messageServeur', 'Vous devez entrer dans la partie !');
         else {
             let message = joueurs[data.numJoueur]+" : "+data.texte;
             console.log("Message à diffuser :", message)
-            io.emit('message', message);
+            // io.emit('message',message)
+
+            socket.emit('message', message);
+            socket.broadcast.emit('messageAutre',message)
         }
     });
 

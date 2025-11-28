@@ -64,10 +64,12 @@ io.on('connection', socket => {
             nomJoueur: nomJoueur
         })
     })
+    /*
     socket.on('reset', ()=> {
         nomsJoueurs = []
         socket.broadcast.emit('reset')
     })
+    */
     socket.on('message', data => {
         if (nomsJoueurs.includes(data.nomJoueur)){
         console.log(`${data.nomJoueur} a dit : ${data.message}`);
