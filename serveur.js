@@ -3,10 +3,23 @@ const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const io = new require("socket.io")(server)
+const path = require('path');
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client', 'index.html'));
+});
+
+app.get('/AppD3.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client', 'AppD3.js'));
+});
+app.get('/ClientSocket.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client', 'ClientSocket.js'));
+})
+/*
 // Lancer un serveur
 app.get('/', (request, response) => {
-    response.sendFile('ExempleProfTestSocket.html', {root: __dirname});
-});
+    response.sendFile('client/', {root: __dirname});
+});*/
 
 var nbJoueurs = 2; // Limite de nombre de joueurs Maxiumm
 var joueurs = []; // Liste des joueurs géré par le serveur
@@ -20,7 +33,7 @@ io.on('connection', (socket) => {
     //
     socket.on('joueurs', () => {
         let nomsJoueurs = "";
-        for (let nom of joueurs) nomsJoueurs += nom+" ";
+        for (let nom of joueurs) nomsJoueurs += nom+" | ";
         console.log("Envoi des noms de joueurs : "+nomsJoueurs);
         socket.emit('joueurs', nomsJoueurs);
     });

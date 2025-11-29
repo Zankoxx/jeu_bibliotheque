@@ -1,12 +1,9 @@
-<!-- File: `index.html` -->
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
+/* ClientSocket.js
+   Gère la connexion socket et la mise à jour du DOM.
+   Chargé avec `defer` (donc exécuté après parsing du DOM).
+*/
+
+document.addEventListener('DOMContentLoaded', () => {
         const socket = io(); // /socket.io/socket.io.js doit être disponible
 
         var numJoueur = -1;
@@ -72,7 +69,6 @@
         function envoiMessage(input) {
             console.log("Envoi du message :", input.value)
             socket.emit("message", {'numJoueur':numJoueur, 'texte':input.value});
-            input.value = "";
 
         }
 
@@ -80,11 +76,13 @@
         socket.on('message', message => {
             console.log("Réception du message :", message);
             messages.innerHTML += `<div class="messages" style="text-align:right">${message}</div> <br>` // ou text-align:right si le messageAutre marche
+            message.value = "";
         });
 
         socket.on('messageAutre',message => {
             console.log("Réception du message :", message);
             messages.innerHTML += `<div class="messages" style="text-align:left">${message}</div> <br>`
+            message.value = ""
         })
 
 
@@ -103,55 +101,6 @@
             }
             messages.innerHTML += `<h3 style="color:${color}; margin:5px 0; text-align:center">${message}</h3>`;
         });
-    </script>
 
-    <style>
-        /* conteneur flex pour aligner horizontalement */
-        #affichageGlobal {
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-        }
-
-        /* gauche = svg, droite = chat */
-        #affichageJeu { width: auto; box-sizing: border-box; }
-        #lobby      { width: 35%; box-sizing: border-box; display: flex; flex-direction: column; align-items: flex-end; text-align: right; margin-left: auto;}
-
-        /* messages/liste */
-        #messages { width: 70%; height: 500px; border: 1px solid #aaa; overflow-y: auto; padding: 5px; }
-        .messages {
-            font-weight: bold;
-        }
-        /* faire remplir le SVG de son conteneur */
-        #affichageJeu svg {
-            width: 100% !important;
-            height: auto;
-            border: 1px solid #000;
-            display: block;
-        }
-    </style>
-</head>
-<body>
-<div id="affichageGlobal">
-    <div id="affichageJeu"></div>
-
-    <div id="lobby">
-        <div id="joueurs">
-            Joueurs : <label id="listeJoueurs"></label><br/>
-            <p>Votre numéro : <label id="numJ"></label></p>
-            <p>Votre nom <input id="nomJ" type="text" /></p>
-            <button type="button" id="btentree" onClick="entrerDansLaPartie()">Entrer dans la partie</button>
-            <button type="button" id="btsortie" disabled onClick="quitterLaPartie()">Quitter la partie</button>
-        </div>
-
-        <br/>
-
-        <div id="messages"></div>
-
-        <p>Message : <input id="message" type="text" onChange="envoiMessage(this)" /></p>
-    </div>
-</div>
-
-<script src="AppD3.js" defer></script>
-</body>
-</html>
+        // Demande initiale des joueurs au chargement
+    })
