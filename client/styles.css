@@ -1,0 +1,87 @@
+/* conteneur flex pour aligner horizontalement */
+#affichageGlobal {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+/* gauche = svg, droite = chat */
+#affichageJeu { width: auto; box-sizing: border-box; }
+#lobby      { width: 35%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    margin-left: auto;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    /* le font qui va probablement changé */
+}
+
+
+/* messages/liste */
+#chat { width: 70%; height: 500px; border: 1px solid #aaa; overflow-y: auto; padding: 5px; }
+.messages {
+    font-weight: bold;
+}
+/* faire remplir le SVG de son conteneur */
+#affichageJeu svg {
+    width: 100% !important;
+    height: auto;
+    border: 1px solid #000;
+    display: block;
+}
+/* Adaptation de la zone d'informations au lieu de .informations */
+#info-joueurs {
+    padding: 10px 20px;
+    background-color: #e8e8e8;
+    border-bottom: 1px solid #c9c9c9;
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+/* Style spécifique pour les labels à l'intérieur de l'info-joueurs */
+#info-joueurs label {
+    font-weight: 400;
+    color: #326de9; /* Couleur du thème */
+}
+
+/* Style de l'input nomJ */
+#info-joueurs #nomJ {
+    padding: 3px 6px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+/* Style des boutons (réutilisé du game-controls pour la cohérence) */
+#info-joueurs button {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 18px;
+    margin-left: 5px;
+}
+
+#btentree {
+    background-color: #326de9;
+    color: white;
+}
+#btentree:disabled {
+    background-color: #cccccc; /* Gris si désactivé */
+    cursor: default;
+    color: #666;
+}
+#btsortie {
+    background-color: #e93232;
+    color: white;
+}
+#btsortie:disabled {
+    background-color: #cccccc; /* Gris si désactivé */
+    cursor: default;
+    color: #666;
+}

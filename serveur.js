@@ -4,7 +4,7 @@ const http = require('http');
 const server = http.createServer(app);
 const io = new require("socket.io")(server)
 const path = require('path');
-
+// Lancer un serveur
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'index.html'));
 });
@@ -12,14 +12,9 @@ app.get('/', (req, res) => {
 app.get('/AppD3.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'AppD3.js'));
 });
-app.get('/ClientSocket.js', (req, res) => {
+/*app.get('/ClientSocket.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'ClientSocket.js'));
-})
-/*
-// Lancer un serveur
-app.get('/', (request, response) => {
-    response.sendFile('client/', {root: __dirname});
-});*/
+})*/
 
 var nbJoueurs = 2; // Limite de nombre de joueurs Maxiumm
 var joueurs = []; // Liste des joueurs géré par le serveur
@@ -33,7 +28,7 @@ io.on('connection', (socket) => {
     //
     socket.on('joueurs', () => {
         let nomsJoueurs = "";
-        for (let nom of joueurs) nomsJoueurs += nom+" | ";
+        for (let nom of joueurs) nomsJoueurs += nom+" ";
         console.log("Envoi des noms de joueurs : "+nomsJoueurs);
         socket.emit('joueurs', nomsJoueurs);
     });
@@ -88,12 +83,13 @@ io.on('connection', (socket) => {
         console.log("Message à diffuser de",data.numJoueur,":",data.texte);
         if (data.numJoueur == -1) socket.emit('messageServeur', 'Vous devez entrer dans la partie !');
         else {
-            let message = joueurs[data.numJoueur]+" : "+data.texte;
+            let message = data.texte;
             console.log("Message à diffuser :", message)
             // io.emit('message',message)
 
             socket.emit('message', message);
             socket.broadcast.emit('messageAutre',message)
+            // socket.broadcast.emit('messageAutre',{'message':message,'pseudo':data.numJoueur}) si affichage du pseudo en dehors du message
         }
     });
 

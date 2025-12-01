@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="styles.css">
     <script>
         const socket = io(); // /socket.io/socket.io.js doit être disponible
 
@@ -76,15 +77,15 @@
 
         }
 
-        // Réception d'un message classique et l'ajoute en dessous des autres messages
+        // Réception d'un message classique et l'ajoute en dessous des autres chat
         socket.on('message', message => {
             console.log("Réception du message :", message);
-            messages.innerHTML += `<div class="messages" style="text-align:right">${message}</div> <br>` // ou text-align:right si le messageAutre marche
+            chat.innerHTML += `<div class="messages" class = "autre" style="text-align:right">${message}</div> <br>` // ou text-align:right si le messageAutre marche
         });
 
         socket.on('messageAutre',message => {
             console.log("Réception du message :", message);
-            messages.innerHTML += `<div class="messages" style="text-align:left">${message}</div> <br>`
+            chat.innerHTML += `<div class="messages" class ="moi" style="text-align:left">${message}</div> <br>`
         })
 
 
@@ -101,34 +102,12 @@
                 || message.includes('Nombre de joueurs déjà atteint !')) {
                 color = "red";
             }
-            messages.innerHTML += `<h3 style="color:${color}; margin:5px 0; text-align:center">${message}</h3>`;
+            chat.innerHTML += `<h3 style="color:${color}; margin:5px 0; text-align:center">${message}</h3>`;
         });
     </script>
 
     <style>
-        /* conteneur flex pour aligner horizontalement */
-        #affichageGlobal {
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-        }
 
-        /* gauche = svg, droite = chat */
-        #affichageJeu { width: auto; box-sizing: border-box; }
-        #lobby      { width: 35%; box-sizing: border-box; display: flex; flex-direction: column; align-items: flex-end; text-align: right; margin-left: auto;}
-
-        /* messages/liste */
-        #messages { width: 70%; height: 500px; border: 1px solid #aaa; overflow-y: auto; padding: 5px; }
-        .messages {
-            font-weight: bold;
-        }
-        /* faire remplir le SVG de son conteneur */
-        #affichageJeu svg {
-            width: 100% !important;
-            height: auto;
-            border: 1px solid #000;
-            display: block;
-        }
     </style>
 </head>
 <body>
@@ -136,7 +115,7 @@
     <div id="affichageJeu"></div>
 
     <div id="lobby">
-        <div id="joueurs">
+        <div id="info-joueurs">
             Joueurs : <label id="listeJoueurs"></label><br/>
             <p>Votre numéro : <label id="numJ"></label></p>
             <p>Votre nom <input id="nomJ" type="text" /></p>
@@ -146,9 +125,9 @@
 
         <br/>
 
-        <div id="messages"></div>
+        <div id="chat"></div>
 
-        <p>Message : <input id="message" type="text" onChange="envoiMessage(this)" /></p>
+        <p>Message : <input id="messageEntree" type="text" onChange="envoiMessage(this)" /></p>
     </div>
 </div>
 
