@@ -12,17 +12,18 @@ app.get('/', (req, res) => {
 app.get('/AppD3.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'AppD3.js'));
 });
+
+app.get ('/styles.css', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client', 'styles.css'));
+});
 /*app.get('/ClientSocket.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'ClientSocket.js'));
 })*/
-app.get('/styles.css', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client', 'styles.css'));
-});
 
 var nbJoueurs = 2; // Limite de nombre de joueurs Maxiumm
 var joueurs = []; // Liste des joueurs géré par le serveur
 // var jeton = -1; // a une utilité pour savoir a qui est le tout mais pas indispensable
-  
+
 server.listen(8888, () => {
     console.log('Le serveur écoute sur le port 8888');
 });
@@ -52,11 +53,11 @@ io.on('connection', (socket) => {
                 let nomsJoueurs = "";
                 for (let nom of joueurs) nomsJoueurs += nom+" ";
                 socket.emit('entree', {'nomJoueur':nomJoueur,
-                                       'numJoueur':joueurs.length-1,
-                                       'nomsJoueurs':nomsJoueurs});
+                    'numJoueur':joueurs.length-1,
+                    'nomsJoueurs':nomsJoueurs});
                 socket.broadcast.emit('entreeAutreJoueur',
-                                        {'nomJoueur':nomJoueur,
-                                        'nomsJoueurs':nomsJoueurs});
+                    {'nomJoueur':nomJoueur,
+                        'nomsJoueurs':nomsJoueurs});
             }
             else socket.emit('messageServeur', 'Nom de joueur déjà enregistré');
         else socket.emit('messageServeur', 'Nombre de joueurs déjà atteint !');
@@ -71,11 +72,11 @@ io.on('connection', (socket) => {
             let nomsJoueurs = "";
             for (let nom of joueurs) nomsJoueurs += nom+" ";
             socket.emit('sortie', {'nomJoueur':nomJoueur,
-                                    'nomsJoueurs':nomsJoueurs});
+                'nomsJoueurs':nomsJoueurs});
             socket.broadcast.emit('sortieAutreJoueur',
-                                    {'nomJoueur':nomJoueur, // Pour information
-                                    'numJoueur': index,
-                                    'nomsJoueurs':nomsJoueurs});
+                {'nomJoueur':nomJoueur, // Pour information
+                    'numJoueur': index,
+                    'nomsJoueurs':nomsJoueurs});
             socket.emit('messageServeur', 'Vous avez quitté la partie');
             socket.broadcast.emit('messageServeur', `${nomJoueur} a quitté la partie`);
         }
@@ -86,7 +87,7 @@ io.on('connection', (socket) => {
         console.log("Message à diffuser de",data.numJoueur,":",data.texte);
         if (data.numJoueur == -1) socket.emit('messageServeur', 'Vous devez entrer dans la partie !');
         else {
-            let message = data.texte;
+            let message = joueurs[data.numJoueur] + " : " + data.texte;
             console.log("Message à diffuser :", message)
             // io.emit('message',message)
 
@@ -116,39 +117,38 @@ function NouvellePartie (){
     console.log(listeEtageres)
 
 }
-// 
+//
+function EstOrdreAlphabetiqueTitre(etagere) {
+    let titres = etagere.map(livre => livre.titre);
+    for (let i = 0; i < titres.length - 1; i++) {
+        if (titres[i] > titres[i + 1]) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function ComptagePoint(etagere) { // Appelé quand l'étagère est pleine
     let ajoutPt = nbLivresEtagere * PointParLivre;
     let livreRef = etagere[0]
-    if (etagere.every(l =>  l.genre === livreRef.genre )) {
-        ajoutPt *= 2
-    }
+    if (etagere.every(l =>  l.genre === livreRef.genre )) {ajoutPt *= 2}
 
-    if (etagere.every(l => l.auteur === livreRef.auteur )) {
-        ajoutPt *= 10
-    }
+    if (etagere.every(l => l.auteur === livreRef.auteur )) {ajoutPt *= 10}
 
-    if (etagere.every(l =>  l.littérature === livreRef.littérature)) {
-        ajoutPt *= 6
-    }
+    if (etagere.every(l =>  l.littérature === livreRef.littérature)) {ajoutPt *= 6}
 
-    if (etagere.every(l =>  l.titre[0] === livreRef.titre)[0]) {
-        ajoutPt *= 3
-    }
+    if (etagere.every(l =>  l.titre[0] === livreRef.titre)[0]) {ajoutPt *= 3} if (EstOrdreAlphabetiqueTitre(etagere)) {ajoutPt *=10}
 
     /*
-    if (for (let i = 0 ; i < etagere.length ; i++)  {
-        etagere[i][0] = etagere[i+1]
-    })
-        */
-    }
-    
     if (listeEtageres.indexOf(etagere) < (NbEtagereT/2)){  // Si c'est l'étagère du joueur 1
         scoreA += ajoutPt
     }
     else {
         scoreB += ajoutPt
     }
+    */
+
+    return ajoutPt;
 }
 
 
@@ -161,11 +161,14 @@ for (const livre of tabLivres){ // Test affichage livre
 }
 
 let testPoints = [
-    {"titre":"La peste", "auteur":"Albert Camus", "nom":"Camus", "genre":"roman", "format":"medium"},
-    {"titre":"L'étranger", "auteur":"Albert Camus", "nom":"Camus", "genre":"roman", "format":"medium"},
-    {"titre":"Cartes sur table", "auteur":"Agatha Christie", "nom":"Christie", "genre":"policier", "littérature":"anglo-saxonne","format":"poche"}
-
+    {"titre":"Ca pue", "auteur":"Albert Camus", "nom":"Camus", "genre":"roman", "format":"medium"},
+    {"titre":"C'est étranger", "auteur":"Albert Camus", "nom":"Camus", "genre":"roman", "format":"medium"},
+    {"titre":"Cartes sur table", "auteur":"Albert Camus", "nom":"Christie", "genre":"roman", "littérature":"anglo-saxonne","format":"poche"},
+    {"titre":"Cartes sur table", "auteur":"Albert Camus", "nom":"Christie", "genre":"roman", "littérature":"anglo-saxonne","format":"poche"},
+    {"titre":"Cartes sur table", "auteur":"Albert Camus", "nom":"Christie", "genre":"roman", "littérature":"anglo-saxonne","format":"poche"}
 ]
+
+console.log(ComptagePoint(testPoints));
 
 
 
