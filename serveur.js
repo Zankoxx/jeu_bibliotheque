@@ -15,6 +15,9 @@ app.get('/AppD3.js', (req, res) => {
 /*app.get('/ClientSocket.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'ClientSocket.js'));
 })*/
+app.get('/styles.css', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client', 'styles.css'));
+});
 
 var nbJoueurs = 2; // Limite de nombre de joueurs Maxiumm
 var joueurs = []; // Liste des joueurs géré par le serveur
@@ -94,3 +97,76 @@ io.on('connection', (socket) => {
     });
 
 });
+
+
+let nbBiblio = 2
+let NbEtageresParBiblio = 3
+let nbLivresEtagere = 5
+let PointParLivre = 100 ;
+const NbEtagereT = nbBiblio * NbEtageresParBiblio
+
+
+function NouvellePartie (){
+    var scoreA = 0;
+    var scoreB = 0;
+    var listeEtageres = new Array(NbEtagereT)
+    for (let i = 0; i<NbEtagereT ; i++) {
+        listeEtageres[i] = new Array(nbLivresEtagere)
+        }
+    console.log(listeEtageres)
+
+}
+// 
+function ComptagePoint(etagere) { // Appelé quand l'étagère est pleine
+    let ajoutPt = nbLivresEtagere * PointParLivre;
+    let livreRef = etagere[0]
+    if (etagere.every(l =>  l.genre === livreRef.genre )) {
+        ajoutPt *= 2
+    }
+
+    if (etagere.every(l => l.auteur === livreRef.auteur )) {
+        ajoutPt *= 10
+    }
+
+    if (etagere.every(l =>  l.littérature === livreRef.littérature)) {
+        ajoutPt *= 6
+    }
+
+    if (etagere.every(l =>  l.titre[0] === livreRef.titre)[0]) {
+        ajoutPt *= 3
+    }
+
+    /*
+    if (for (let i = 0 ; i < etagere.length ; i++)  {
+        etagere[i][0] = etagere[i+1]
+    })
+        */
+    }
+    
+    if (listeEtageres.indexOf(etagere) < (NbEtagereT/2)){  // Si c'est l'étagère du joueur 1
+        scoreA += ajoutPt
+    }
+    else {
+        scoreB += ajoutPt
+    }
+}
+
+
+
+const fs = require('fs')
+const Livresbrut= fs.readFileSync('./client/livres.json','utf8');
+const tabLivres = JSON.parse(Livresbrut);
+for (const livre of tabLivres){ // Test affichage livre
+    // console.log(livre.titre)
+}
+
+let testPoints = [
+    {"titre":"La peste", "auteur":"Albert Camus", "nom":"Camus", "genre":"roman", "format":"medium"},
+    {"titre":"L'étranger", "auteur":"Albert Camus", "nom":"Camus", "genre":"roman", "format":"medium"},
+    {"titre":"Cartes sur table", "auteur":"Agatha Christie", "nom":"Christie", "genre":"policier", "littérature":"anglo-saxonne","format":"poche"}
+
+]
+
+
+
+
