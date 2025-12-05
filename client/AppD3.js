@@ -20,17 +20,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const biblio = svg.append("g").attr("id", "biblio"); // Crée le groupe bibliothèque dans le svg
     const tapis = svg.append("g").attr("id", "tapis"); // Crée le groupe tapis dans le svg
-    const livres = svg.append("g").attr("id", "livres");
-    const tapisSol = svg.append("g").attr("id", "tapisSol");
+    const livres = svg.append("g").attr("id", "livres");     // Crée le groupe livres dans le svg
     const Vitesse_Tapis = 100 ; // Vitesse du tapis en pixels par seconde
-    // Crée le groupe livres dans le svg
+
 
     let rayon = 20;
     let nbCercles = 20;
     let anim = false; // Si l'animation est en cours ou pas
     let mode = false; // false = Tapis2, true = Tapis1
     let animIntervalTapis = null;
-    let animIntervalLivre
+    let animIntervalLivre = null;
     let livreSelectionne = null;
     let indexLivreActuel = 0;
 
@@ -121,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .attr("stroke-width", 2);
 
     // 2. Le Rectangle qui utilise le motif
-    tapisSol.append("rect")
+    svg.append("rect")
         .attr("x", 0)
         .attr("y", beltYPosition)
         .attr("width", 800)
@@ -298,8 +297,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let testDansBiblio3 = dessinerLivre(170, 470);
     let testDansBiblio4 = dessinerLivre(230, 470);
     let testDansBiblio5 = dessinerLivre(290, 470);
-    
-    socket
 
     //let test = spawnLivre(choisirLivre(0))
 
@@ -309,5 +306,6 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     socket.on('StopAnimation',() => {
         stopAnimation()
+        console.log("l'animation s'arrête")
     })
 });
