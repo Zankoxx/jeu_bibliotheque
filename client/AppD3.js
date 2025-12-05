@@ -7,15 +7,13 @@ document.addEventListener('DOMContentLoaded', () => {
         .style("height", "98vh")         // Toute la hauteur
         .style("border", "1px solid black"); // Pour voir les bordures du svg
 
-    async function chargerLivres() {
-        let res = await fetch("livres.json");
-        return await res.json();
-    }
-
-    async function choisirLivre(id) {
-        let livres = await chargerLivres();
-        return livres.find(l => l.id === id);
-    }
+    // Reception du json
+   let tabLivres = []
+    socket.on('RéceptionJSON' , data => {
+        console.log("JSON récupéré")
+        tabLivres = data.tabLivres
+        console.log(tabLivres)
+    })
     
 
     const groupeBiblio = svg.append("g").attr("id", "groupeBiblio"); // Crée le groupe bibliothèque dans le svg
@@ -327,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fonction qui spawn le prochain livre toutes les 10 secondes
         setInterval(function () {
         // On prend le livre courant du tableau
-        const livreObj = choisirLivre(indexLivreActuel)
+        const livreObj = tabLivres[indexLivreActuel];
 
         // Spawn le livre sur le tapis roulant
         spawnLivre(livreObj);
