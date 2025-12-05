@@ -49,6 +49,8 @@ io.on('connection', (socket) => {
                     // jeton = 0;
                     console.log("Le jeton passe à 0, la partie peut commencer");
                     io.emit('messageServeur', 'La partie peut commencer');
+                    
+                    io.emit('NouvellePartie')
                 }
                 let nomsJoueurs = "";
                 for (let nom of joueurs) nomsJoueurs += nom+" ";
@@ -96,7 +98,22 @@ io.on('connection', (socket) => {
             // socket.broadcast.emit('messageAutre',{'message':message,'pseudo':data.numJoueur}) si affichage du pseudo en dehors du message
         }
     });
-
+    socket.on('CommencerPartie', () => {
+        io.emit('StartAnimation')
+        console.log("On va faire démarrer l'animation")
+        
+    })
+    /* Gestion Stop et Reprendre
+    socket.on('stop' ,() => {
+        io.emit('StopAnimation')
+        io.emit('EtatBoutonStopetReprendre')
+    })
+    socket.on('reprendre',() => {
+        io.emit('StartAnimation')
+        io.emit('EtatBoutonStopetReprendre')
+    }) 
+    */
+    
 });
 
 
@@ -117,7 +134,7 @@ function NouvellePartie (){
     console.log(listeEtageres)
 
 }
-//
+
 function EstOrdreAlphabetiqueTitre(etagere) {
     let titres = etagere.map(livre => livre.titre);
     for (let i = 0; i < titres.length - 1; i++) {
@@ -168,7 +185,8 @@ let testPoints = [
     {"titre":"Cartes sur table", "auteur":"Albert Camus", "nom":"Christie", "genre":"roman", "littérature":"anglo-saxonne","format":"poche"}
 ]
 
-console.log(ComptagePoint(testPoints));
+//console.log(ComptagePoint(testPoints));
+
 
 
 
