@@ -7,6 +7,18 @@ const path = require('path');
 const fs = require('fs')
 const Livresbrut= fs.readFileSync('./client/livres.json','utf8');
 const tabLivres = JSON.parse(Livresbrut);
+
+
+
+let nbBiblio = 2
+let NbEtageresParBiblio = 3
+let nbLivresEtagere = 5
+let listeEtageres = null ;
+let PointParLivre = 100 ;
+const NbEtagereT = nbBiblio * NbEtageresParBiblio
+
+
+
 // Lancer un serveur
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'index.html'));
@@ -104,6 +116,9 @@ io.on('connection', (socket) => {
     socket.on('CommencerPartie', () => {
         io.emit('StartAnimation')
         io.emit('RéceptionJSON' , {'tabLivres':tabLivres})
+        NouvellePartie();
+        console.log("affichagetableauvide")
+        console.log(listeEtageres);
         console.log("On va faire démarrer l'animation")
         
     })
@@ -176,11 +191,6 @@ io.on('connection', (socket) => {
 
 
 
-let nbBiblio = 2
-let NbEtageresParBiblio = 3
-let nbLivresEtagere = 5
-let PointParLivre = 100 ;
-const NbEtagereT = nbBiblio * NbEtageresParBiblio
 
 
 function NouvellePartie (){
