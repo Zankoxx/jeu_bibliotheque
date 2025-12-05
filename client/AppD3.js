@@ -18,10 +18,54 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
 
-    const biblio = svg.append("g").attr("id", "biblio"); // Crée le groupe bibliothèque dans le svg
-    const tapis = svg.append("g").attr("id", "tapis"); // Crée le groupe tapis dans le svg
-    const livres = svg.append("g").attr("id", "livres");     // Crée le groupe livres dans le svg
+    const groupeBiblio = svg.append("g").attr("id", "groupeBiblio"); // Crée le groupe bibliothèque dans le svg
+    const groupeTapis = svg.append("g").attr("id", "groupeTapis"); // Crée le groupe tapis dans le svg
+    const groupeLivres = svg.append("g").attr("id", "groupeLivres");     // Crée le groupe livres dans le svg
     const Vitesse_Tapis = 100 ; // Vitesse du tapis en pixels par seconde
+    const zonesEtagere = [
+    // Bibliothèque 1, étagère du bas
+    { x: 50,  y: 470 },
+    { x: 110, y: 470 },
+    { x: 170, y: 470 },
+    { x: 230, y: 470 },
+    { x: 290, y: 470 },
+
+    // Bibliothèque 1, étagère du milieu
+    { x: 50,  y: 287 },
+    { x: 110, y: 287 },
+    { x: 170, y: 287 },
+    { x: 230, y: 287 },
+    { x: 290, y: 287 },
+
+    // Bibliothèque 1, étagère du haut
+    { x: 50,  y: 104 },
+    { x: 110, y: 104 },
+    { x: 170, y: 104 },
+    { x: 230, y: 104 },
+    { x: 290, y: 104 },
+
+    // Bibliothèque 2, étagère du bas
+    { x: 450, y: 470 },
+    { x: 510, y: 470 },
+    { x: 570, y: 470 },
+    { x: 630, y: 470 },
+    { x: 690, y: 470 },
+    
+    // Bibliothèque 2, étagère du milieu
+    { x: 450, y: 287 },
+    { x: 510, y: 287 },
+    { x: 570, y: 287 },
+    { x: 630, y: 287 },
+    { x: 690, y: 287 },
+
+    // Bibliothèque 2, étagère du haut
+    { x: 450, y: 104 },
+    { x: 510, y: 104 },
+    { x: 570, y: 104 },
+    { x: 630, y: 104 },
+    { x: 690, y: 104 },
+
+    ];
 
 
     let rayon = 20;
@@ -35,56 +79,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fonction pour dessiner une bibliotheque
     function dessinerBiblio(x, y) {
-        biblio.append("rect")
+        groupeBiblio.append("rect")
             .attr("x", x).attr("y", y).attr("width", 300).attr("height", 550).attr("fill", "white").attr("stroke", "black");
-        biblio.append("line")
+        groupeBiblio.append("line")
             .attr("x1", x).attr("y1", y + (550 / 3)).attr("x2", x + 300).attr("y2", y + (550 / 3)).attr("stroke", "black");
-        biblio.append("line")
+        groupeBiblio.append("line")
             .attr("x1", x).attr("y1", y + 2 * (550 / 3)).attr("x2", x + 300).attr("y2", y + 2 * (550 / 3)).attr("stroke", "black");
-        biblio.on("click", function (event) {
-            // Si aucun livre n'est selectionné ne fait rien
-            if (livreSelectionne == null)
+    }
+
+    function creerZonesBiblio() {
+    zonesEtagere.forEach((zone, i) => {
+        const z = svg.append("rect")
+            .attr("x", zone.x)
+            .attr("y", zone.y)
+            .attr("width", 60)
+            .attr("height", 130)
+            .attr("fill", "transparent")
+            .attr("stroke", "none")
+            .attr("class", "zonePlacement");
+
+        // Clique sur une zone = pose du livre
+        z.on("click", function(event) {
+            // Si aucun livre est selectionné ne fait rien
+            if (livreSelectionne == false) 
                 return;
 
-            // Arrete l'animation du livre pour pouvoir le poser su la biblio
+            // Stop l'animation du livre
             livreSelectionne.interrupt();
 
-            // Convertit la position du clic dans le SVG
-            const [x, y] = d3.pointer(event);
+            // Place le livre dans la zone
+            livreSelectionne.attr("transform", `translate(${zone.x}, ${zone.y})`);
 
-            // Place le livre
-            livreSelectionne.attr("transform", "translate(" + x + "," + y + ")");
-
-            console.log("Livre posé en étagère à", x, y);
-
-            // Retire le contour de sélection quand on place le livre
+            // Enleve le contour de selection
             livreSelectionne.select("rect")
                 .attr("stroke", "black")
                 .attr("stroke-width", 1);
 
-            livreSelectionne = null; // reset
+            console.log("Livre posé dans zone", i);
+
+            livreSelectionne = null;
         });
+    });
     }
 
 
     // Fonctions pour créer les cercles
     // Tapis1 = vertical + horizontal, Tapis2 = diagonales
     function creerCercleTapis1(x, y, r) {
-        tapis.append("circle")
+        groupeTapis.append("circle")
             .attr("cx", x).attr("cy", y).attr("r", r).attr("fill", "lightgrey").attr("stroke", "black");
-        tapis.append("line")
+        groupeTapis.append("line")
             .attr("x1", x).attr("y1", y - r).attr("x2", x).attr("y2", y + r).attr("stroke", "black"); // Ligne verticale
-        tapis.append("line")
+        groupeTapis.append("line")
             .attr("x1", x - r).attr("y1", y).attr("x2", x + r).attr("y2", y).attr("stroke", "black"); // Ligne horizontale
     }
 
     function creerCercleTapis2(x, y, r) {
         let d = r / Math.sqrt(2); // Pour avoir les lignes diagonales il faut cette valeur
-        tapis.append("circle")
+        groupeTapis.append("circle")
             .attr("cx", x).attr("cy", y).attr("r", r).attr("fill", "lightgrey").attr("stroke", "black");
-        tapis.append("line")
+        groupeTapis.append("line")
             .attr("x1", x - d).attr("y1", y - d).attr("x2", x + d).attr("y2", y + d).attr("stroke", "black");
-        tapis.append("line")
+        groupeTapis.append("line")
             .attr("x1", x - d).attr("y1", y + d).attr("x2", x + d).attr("y2", y - d).attr("stroke", "black");
     }
 
@@ -170,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     
     function dessinerTapis(mode) {
-        tapis.selectAll("*").remove(); // Si un tapis est deja affiché le retire (supprime tout ce qu'il y a dans le groupe tapis)
+        groupeTapis.selectAll("*").remove(); // Si un tapis est deja affiché le retire (supprime tout ce qu'il y a dans le groupe tapis)
 
         for (let i = 0; i < nbCercles; i++) {
             let x = 20 + i * rayon * 2;
@@ -191,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fonction pour dessiner un livre
     function dessinerLivre(x, y, couleur = "steelblue", largeur = 60, hauteur = 130) {
-        const livre = livres.append("g")
+        const livre = groupeLivres.append("g")
             .attr("class", "livre")
             .attr("transform", "translate(" + x + "," + y + ")");
 
@@ -234,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Fonction pour animer un livre sur le tapis roulant
-    function animerLivre(livre, xCible = 800, yCible = 630, duree = 10000) {
+    function animerLivre(livre, xCible = 800, yCible = 620, duree = 10000) {
         const distance = xCible - 10; // Distance à parcourir (800 - position de départ 10)
         duree = (distance / Vitesse_Tapis) * 1000; // Calcul de la durée en ms en fonction de la vitesse du tapis
         livre.transition()
@@ -245,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function spawnLivre(livreObj) {
-        let livreCrée = dessinerLivre(10, 630);
+        let livreCrée = dessinerLivre(10, 620);
         livreCrée.datum(livreObj);
         animerLivre(livreCrée);
     }
@@ -292,6 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     dessinerBiblio(50, 50);
     dessinerBiblio(450, 50);
+    creerZonesBiblio();
     let testDansBiblio = dessinerLivre(50, 470);
     let testDansBiblio2 = dessinerLivre(110, 470);
     let testDansBiblio3 = dessinerLivre(170, 470);
