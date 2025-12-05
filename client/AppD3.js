@@ -86,6 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr("x1", x).attr("y1", y + 2 * (550 / 3)).attr("x2", x + 300).attr("y2", y + 2 * (550 / 3)).attr("stroke", "black");
     }
 
+
+    // Fonction pour faire les zones de placement des livres dans les biblio
     function creerZonesBiblio() {
     zonesEtagere.forEach((zone, i) => {
         const z = groupeBiblio.append("rect")
@@ -280,7 +282,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const infoLivre = livre.datum();
 
             // Affiche toutes les infos dans le div
-            d3.select("#infoLivre").text(infoLivre.titre)
+            d3.select("#infoLivre").html(`
+                <b>Titre :</b> ${infoLivre.titre} <br>
+                <b>Auteur :</b> ${infoLivre.auteur} <br>
+                <b>Genre :</b> ${infoLivre.genre} <br>
+                <b>Littérature :</b> ${infoLivre.littérature} <br>
+                <b>Format :</b> ${infoLivre.format}
+            `);
 
             console.log("Livre sélectionné");
         })
