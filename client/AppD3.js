@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const groupeBiblio = svg.append("g").attr("id", "groupeBiblio"); // Crée le groupe bibliothèque dans le svg
     const groupeTapis = svg.append("g").attr("id", "groupeTapis"); // Crée le groupe tapis dans le svg
     const groupeLivres = svg.append("g").attr("id", "groupeLivres");     // Crée le groupe livres dans le svg
+    groupeLivres.raise();
     const Vitesse_Tapis = 100 ; // Vitesse du tapis en pixels par seconde
     const zonesEtagere = [
     // Bibliothèque 1, étagère du bas
@@ -87,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function creerZonesBiblio() {
     zonesEtagere.forEach((zone, i) => {
-        const z = svg.append("rect")
+        const z = groupeBiblio.append("rect")
             .attr("x", zone.x)
             .attr("y", zone.y)
             .attr("width", 60)
