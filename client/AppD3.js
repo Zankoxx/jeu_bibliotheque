@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const socket = io()
     const svg = d3.select("#affichageJeu")
         .append("svg")
         .attr("viewBox", "0 0 800 800")  // <-- système interne
@@ -15,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let livres = await chargerLivres();
         return livres.find(l => l.id === id);
     }
-
+    
 
     const biblio = svg.append("g").attr("id", "biblio"); // Crée le groupe bibliothèque dans le svg
     const tapis = svg.append("g").attr("id", "tapis"); // Crée le groupe tapis dans le svg
@@ -28,7 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let nbCercles = 20;
     let anim = false; // Si l'animation est en cours ou pas
     let mode = false; // false = Tapis2, true = Tapis1
-    let animInterval = null;
+    let animIntervalTapis = null;
+    let animIntervalLivre
     let livreSelectionne = null;
     let indexLivreActuel = 0;
 
@@ -89,54 +91,85 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Cree le sol du tapis roulant avec un motif animé
     function creerSolTapis() {
-        const beltHeight = 10;
-        // Sommet des roues = 780 (cy) - 20 (r) = 760
-        const beltYPosition = 760 - beltHeight;
+    // Vérification : si le tapis existe déjà, on ne le recrée pas
+    if (!d3.select("#beltTexture").empty()) return;
 
-        // 1. Défs et Motif
-        let defs = svg.select("defs");
-        if (defs.empty()) defs = svg.append("defs");
+    const beltHeight = 10;
+    const beltYPosition = 760 - beltHeight;
+    const patternWidth = 20;
 
-        const patternWidth = 20;
-        let duree = patternWidth / Vitesse_Tapis; // Durée de l'animation en secondes
-        const beltPattern = defs.append("pattern")
-            .attr("id", "beltTexture")
-            .attr("width", patternWidth)
-            .attr("height", beltHeight)
-            .attr("patternUnits", "userSpaceOnUse");
+    // 1. Défs et Motif
+    let defs = svg.select("defs");
+    if (defs.empty()) defs = svg.append("defs");
 
-        // Fond du tapis (gris foncé)
-        beltPattern.append("rect")
-            .attr("width", patternWidth).attr("height", beltHeight)
-            .attr("fill", "#333");
+    const beltPattern = defs.append("pattern")
+        .attr("id", "beltTexture")
+        .attr("width", patternWidth)
+        .attr("height", beltHeight)
+        .attr("patternUnits", "userSpaceOnUse");
 
-        // Rayure pour l'effet de vitesse
-        beltPattern.append("line")
-            .attr("x1", patternWidth / 2).attr("y1", 0)
-            .attr("x2", patternWidth / 2).attr("y2", beltHeight)
-            .attr("stroke", "#555")
-            .attr("stroke-width", 2);
+    // Fond du tapis (gris foncé)
+    beltPattern.append("rect")
+        .attr("width", patternWidth).attr("height", beltHeight)
+        .attr("fill", "#333");
 
-        // 2. Animation native SVG du motif
-        beltPattern.append("animateTransform")
-            .attr("attributeName", "patternTransform")
-            .attr("type", "translate")
-            .attr("from", "0 0")
-            .attr("to", `${patternWidth} 0`)
-            .attr("dur", duree+"s") // Vitesse de défilement du motif
-            .attr("repeatCount", "indefinite");
+    // Rayure pour l'effet de vitesse
+    beltPattern.append("line")
+        .attr("x1", patternWidth / 2).attr("y1", 0)
+        .attr("x2", patternWidth / 2).attr("y2", beltHeight)
+        .attr("stroke", "#555")
+        .attr("stroke-width", 2);
 
-        // 3. Le Rectangle qui utilise le motif
-        tapisSol.append("rect")
-            .attr("x", 0)
-            .attr("y", beltYPosition)
-            .attr("width", 800)
-            .attr("height", beltHeight)
-            .attr("fill", "url(#beltTexture)")
-            .attr("stroke", "none");
+    // 2. Le Rectangle qui utilise le motif
+    tapisSol.append("rect")
+        .attr("x", 0)
+        .attr("y", beltYPosition)
+        .attr("width", 800)
+        .attr("height", beltHeight)
+        .attr("fill", "url(#beltTexture)")
+        .attr("stroke", "none");
+}
+
+
+
+    function gererAnimationTapis(actif) {
+    // On récupère le motif via son ID
+    const beltPattern = d3.select("#beltTexture");
+    
+    // Sécurité : si le motif n'existe pas encore, on sort
+    if (beltPattern.empty()) return;
+
+    const patternWidth = 20; 
+    // On suppose que Vitesse_Tapis est une variable globale définie plus haut
+    let duree = patternWidth / Vitesse_Tapis; 
+
+    let animation = beltPattern.select("animateTransform");
+
+    if (actif) {
+        // Si on veut activer et que l'animation n'existe pas, on l'ajoute
+        if (animation.empty()) {
+            beltPattern.append("animateTransform")
+                .attr("attributeName", "patternTransform")
+                .attr("type", "translate")
+                .attr("from", "0 0")
+                .attr("to", `${patternWidth} 0`)
+                .attr("dur", duree + "s")
+                .attr("repeatCount", "indefinite");
+        }
+    } else {
+        // Si on veut désactiver et qu'elle existe, on la supprime
+        if (!animation.empty()) {
+            animation.remove();
+        }
     }
+}
 
-    // Affiche un tapis complet selon le mode
+    
+
+
+// Affiche un tapis complet selon le mode
+    
+    
     function dessinerTapis(mode) {
         tapis.selectAll("*").remove(); // Si un tapis est deja affiché le retire (supprime tout ce qu'il y a dans le groupe tapis)
 
@@ -150,28 +183,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 creerCercleTapis2(x, y, rayon);
         }
         creerSolTapis();
+        
     }
 
     // Tapis de base avant de lanceer l'animation
     dessinerTapis(mode); // mode = false de base donc c'est un Tapis2
-
-    // Fonction qui démarre l'animation
-    function startAnimation() {
-        if (anim == true)
-            return; // Si animation deja en cours on relance pas
-        anim = true;
-
-        animInterval = setInterval(() => {
-            mode = !mode;
-            dessinerTapis(mode);
-        }, 150);
-    }
-
-    // Fonction qui stop l'animation
-    function stopAnimation() {
-        anim = false;
-        clearInterval(animInterval);
-    }
+    
 
     // Fonction pour dessiner un livre
     function dessinerLivre(x, y, couleur = "steelblue", largeur = 60, hauteur = 130) {
@@ -237,21 +254,23 @@ document.addEventListener('DOMContentLoaded', () => {
     svg.append("line")
         .attr("x1", 0).attr("y1", 600).attr("x2", 800).attr("y2", 600).attr("stroke", "black");
 
-
-    dessinerBiblio(50, 50);
-    dessinerBiblio(450, 50);
-    let testDansBiblio = dessinerLivre(50, 470);
-    let testDansBiblio2 = dessinerLivre(110, 470);
-    let testDansBiblio3 = dessinerLivre(170, 470);
-    let testDansBiblio4 = dessinerLivre(230, 470);
-    let testDansBiblio5 = dessinerLivre(290, 470);
-    startAnimation()
-    // stopAnimation()
-
-    let test = spawnLivre(choisirLivre(0))
-
-    // Fonction qui spawn le prochain livre toutes les 10 secondes
-    setInterval(function () {
+    
+     // Fonction qui démarre l'animation
+    
+    
+    
+        function startAnimation() {
+        if (anim == true)
+            return; // Si animation deja en cours on relance pas
+        anim = true;
+        gererAnimationTapis(anim)
+        animIntervalTapis = setInterval(() => {
+            mode = !mode;
+            dessinerTapis(mode);
+        }, 150);
+        animIntervalLivre =
+        // Fonction qui spawn le prochain livre toutes les 10 secondes
+        setInterval(function () {
         // On prend le livre courant du tableau
         const livreObj = choisirLivre(indexLivreActuel)
 
@@ -262,4 +281,33 @@ document.addEventListener('DOMContentLoaded', () => {
         indexLivreActuel += 1;
 
     }, 10000); // 10000 ms = 10 secondes
+    }
+
+    // Fonction qui stop l'animation
+    function stopAnimation() {
+        anim = false;
+        gererAnimationTapis(anim)
+        clearInterval(animIntervalTapis);
+        clearInterval(animIntervalLivre);
+    }
+    
+    dessinerBiblio(50, 50);
+    dessinerBiblio(450, 50);
+    let testDansBiblio = dessinerLivre(50, 470);
+    let testDansBiblio2 = dessinerLivre(110, 470);
+    let testDansBiblio3 = dessinerLivre(170, 470);
+    let testDansBiblio4 = dessinerLivre(230, 470);
+    let testDansBiblio5 = dessinerLivre(290, 470);
+    
+    socket
+
+    //let test = spawnLivre(choisirLivre(0))
+
+    socket.on('StartAnimation',() => {
+        startAnimation()
+        console.log("L'animation démarre")
+    })
+    socket.on('StopAnimation',() => {
+        stopAnimation()
+    })
 });
