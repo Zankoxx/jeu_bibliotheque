@@ -85,7 +85,26 @@
     cursor: default;
     color: #666;
 }
+#btNouvellePartie {
+    position : relative;
+    text-align : center;
+    background-color: #2bb608;
+    color: white; 
+}
 
+#btStopPartie {
+    position : relative;
+    text-align : center;
+    background-color: #720c04;
+    color: white; 
+}
+
+#btReprendrePartie {
+    position : relative;
+    text-align : center;
+    background-color: #145304;
+    color: white; 
+}
 
 #infoLivre {
     display: flex;
@@ -100,3 +119,4 @@
     border-radius: 6px;
     font-size: 14px;
     color: #333;}
+
