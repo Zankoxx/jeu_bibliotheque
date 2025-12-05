@@ -4,6 +4,9 @@ const http = require('http');
 const server = http.createServer(app);
 const io = new require("socket.io")(server)
 const path = require('path');
+const fs = require('fs')
+const Livresbrut= fs.readFileSync('./client/livres.json','utf8');
+const tabLivres = JSON.parse(Livresbrut);
 // Lancer un serveur
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'index.html'));
@@ -100,21 +103,77 @@ io.on('connection', (socket) => {
     });
     socket.on('CommencerPartie', () => {
         io.emit('StartAnimation')
+        io.emit('RéceptionJSON' , {'tabLivres':tabLivres})
         console.log("On va faire démarrer l'animation")
         
     })
-    /* Gestion Stop et Reprendre
+    
     socket.on('stop' ,() => {
         io.emit('StopAnimation')
-        io.emit('EtatBoutonStopetReprendre')
     })
+    /* 
     socket.on('reprendre',() => {
         io.emit('StartAnimation')
         io.emit('EtatBoutonStopetReprendre')
     }) 
     */
+   // reception du livre quand il est placé dans la bibliothèque
+    socket.on('receptionLivre' , data => {
+    
+        })
+
+    
+
+    
     
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 let nbBiblio = 2
@@ -145,9 +204,12 @@ function EstOrdreAlphabetiqueTitre(etagere) {
     return true;
 }
 
-function ComptagePoint(etagere) { // Appelé quand l'étagère est pleine
+/*
+function ComptagePoint(etagere,livre) { // Appelé quand l'étagère est pleine
     let ajoutPt = nbLivresEtagere * PointParLivre;
-    let livreRef = etagere[0]
+    for (let l of etagere)
+    
+    bonus
     if (etagere.every(l =>  l.genre === livreRef.genre )) {ajoutPt *= 2}
 
     if (etagere.every(l => l.auteur === livreRef.auteur )) {ajoutPt *= 10}
@@ -155,24 +217,24 @@ function ComptagePoint(etagere) { // Appelé quand l'étagère est pleine
     if (etagere.every(l =>  l.littérature === livreRef.littérature)) {ajoutPt *= 6}
 
     if (etagere.every(l =>  l.titre[0] === livreRef.titre)[0]) {ajoutPt *= 3} if (EstOrdreAlphabetiqueTitre(etagere)) {ajoutPt *=10}
+    
 
-    /*
+    
     if (listeEtageres.indexOf(etagere) < (NbEtagereT/2)){  // Si c'est l'étagère du joueur 1
         scoreA += ajoutPt
     }
     else {
         scoreB += ajoutPt
     }
-    */
+    
 
-    return ajoutPt;
-}
+    return ajoutPt;}
+*/
 
 
 
-const fs = require('fs')
-const Livresbrut= fs.readFileSync('./client/livres.json','utf8');
-const tabLivres = JSON.parse(Livresbrut);
+
+
 for (const livre of tabLivres){ // Test affichage livre
     // console.log(livre.titre)
 }
@@ -184,6 +246,7 @@ let testPoints = [
     {"titre":"Cartes sur table", "auteur":"Albert Camus", "nom":"Christie", "genre":"roman", "littérature":"anglo-saxonne","format":"poche"},
     {"titre":"Cartes sur table", "auteur":"Albert Camus", "nom":"Christie", "genre":"roman", "littérature":"anglo-saxonne","format":"poche"}
 ]
+
 
 //console.log(ComptagePoint(testPoints));
 
