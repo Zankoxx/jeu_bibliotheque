@@ -4,12 +4,14 @@ const http = require('http');
 const server = http.createServer(app);
 const io = new require("socket.io")(server)
 const path = require('path');
+
+// Lecture du fichier JSON des livres
 const fs = require('fs')
 const Livresbrut= fs.readFileSync('./client/livres.json','utf8');
 const tabLivres = JSON.parse(Livresbrut);
 
 
-
+// Variables de la partie
 let nbBiblio = 2
 let NbEtageresParBiblio = 3
 let nbLivresEtagere = 5
@@ -51,7 +53,7 @@ io.on('connection', (socket) => {
         console.log("Envoi des noms de joueurs : "+nomsJoueurs);
         socket.emit('joueurs', nomsJoueurs);
     });
-
+    // Entrée d'un joueur dans la partie
     socket.on('entree', nomJoueur => {
         console.log("Entrée dans la partie de "+nomJoueur);
         if (joueurs.length < nbJoueurs)
@@ -79,7 +81,7 @@ io.on('connection', (socket) => {
             else socket.emit('messageServeur', 'Nom de joueur déjà enregistré');
         else socket.emit('messageServeur', 'Nombre de joueurs déjà atteint !');
     });
-
+    // Sortie d'un joueur de la partie
     socket.on('sortie', nomJoueur => {
         console.log("Sortie de la partie de "+nomJoueur);
         let index = joueurs.indexOf(nomJoueur)
@@ -137,10 +139,11 @@ io.on('connection', (socket) => {
     
         })
 
-    
+    socket.on('demandeLivre', data => {
+        console.log(data)
+        socket.emit('envoiLivre', {'livreC':getColor(data),'livreF':getSize(data)})
+    })
 
-    
-    
 });
 
 
@@ -181,13 +184,51 @@ io.on('connection', (socket) => {
 
 
 
+function getColor(livreJSON) {
+    switch (livreJSON.genre) {
+        case "roman":
+            return "#FF0000"; // 1. Basique (Rouge)
+        case "théâtre":
+            return "#FFA500"; // 2. Chaude (Orange Vif)
+        case "sf":
+            return "#87CEEB"; // 3. Froide (Bleu Ciel)
+        case "poésie":
+            return "#191970"; // 4. Foncé (Bleu Nuit)
+        case "thriller":
+            return "#98FF98"; // 5. Clair (Vert Menthe)
+        case "policier":
+            return "#008000"; // 6. Basique (Vert)
+        case "feelgood":
+            return "#FFDB58"; // 7. Chaude (Jaune Moutarde)
+        case "aventures":
+            return "#E6E6FA"; // 8. Froide (Violet Lavande)
+        case "essai":
+            return "#36454F"; // 9. Foncé (Gris Anthracite)
+        case "humour":
+            return "#FFD1DC"; // 10. Clair (Rose Poudré)
+        case "fantasy":
+            return "#0000FF"; // 11. Basique (Bleu)
+        default:
+            return "#CCCCCC"; // Une couleur par défaut (Gris clair)
+    }
+}
 
-
-
-
-
-
-
+function getSize(livreJSON)
+{
+    switch(livreJSON.format)
+    {
+        case "medium":
+            return 90
+        case "poche":
+            return 70
+        case "grand":
+            return 110
+        case "maxi":
+            return 120
+        default:
+            return 130 // Une taille par défaut
+    }
+}
 
 
 

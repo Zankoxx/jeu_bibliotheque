@@ -108,15 +108,17 @@
 
 #infoLivre {
     display: flex;
-    position: absolute;
+    position: fixed;
+    flex-direction: column;
     top: 50%;
-    left: 50%;
-    transform: translate(125%, -60%);
+    right: 20px;
+    transform: translateY(-100%); translateX(-50%);
     margin-top: 10px;
     padding: 10px;
     background-color: #f9f9f9;
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 14px;
-    color: #333;}
+    color: #333;
+}
 

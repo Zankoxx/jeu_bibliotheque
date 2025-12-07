@@ -101,23 +101,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Clique sur une zone = pose du livre
         z.on("click", function(event) {
-            // Si aucun livre est selectionné ne fait rien
-            if (livreSelectionne == false) 
-                return;
+            if (livreSelectionne == null) return; // Sécurité
 
-            // Stop l'animation du livre
-            livreSelectionne.interrupt();
+            livreSelectionne.interrupt(); // Stop l'animation
 
-            // Place le livre dans la zone
-            livreSelectionne.attr("transform", `translate(${zone.x}, ${zone.y})`);
+            // --- CALCUL DE LA NOUVELLE POSITION ---
+            // 1. On récupère la hauteur actuelle du livre sélectionné
+            let hauteurLivre = livreSelectionne.select("rect").attr("height");
 
-            // Enleve le contour de selection
+            // 2. On calcule le Y aligné : Sol de l'étagère - Hauteur du livre
+            let nouveauY = zone.y - hauteurLivre + 130; // 130 = hauteur de la zone
+
+            // 3. On place le livre avec le nouveau Y
+            livreSelectionne.attr("transform", `translate(${zone.x}, ${nouveauY})`);
+            // --------------------------------------
+
             livreSelectionne.select("rect")
                 .attr("stroke", "black")
                 .attr("stroke-width", 1);
 
             console.log("Livre posé dans zone", i);
-
             livreSelectionne = null;
         });
     });
@@ -247,16 +250,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
 
     // Fonction pour dessiner un livre
-    function dessinerLivre(x, y, couleur = "steelblue", largeur = 60, hauteur = 130) {
+    function dessinerLivre(x, y, largeur = 60) {
         const livre = groupeLivres.append("g")
-            .attr("class", "livre")
+            .attr("class","livre")
             .attr("transform", "translate(" + x + "," + y + ")");
 
         // Rectangle du livre
         livre.append("rect")
             .attr("width", largeur)
-            .attr("height", hauteur)
-            .attr("fill", couleur)
+            .attr("height", 0)
             .attr("stroke", "black")
             .attr("rx", 4);
 
@@ -297,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Fonction pour animer un livre sur le tapis roulant
-    function animerLivre(livre, xCible = 800, yCible = 620, duree = 10000) {
+    function animerLivre(livre, xCible, yCible, duree = 10000) {
         const distance = xCible - 10; // Distance à parcourir (800 - position de départ 10)
         duree = (distance / Vitesse_Tapis) * 1000; // Calcul de la durée en ms en fonction de la vitesse du tapis
         livre.transition()
@@ -309,8 +311,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function spawnLivre(livreObj) {
         let livreCrée = dessinerLivre(10, 620);
-        livreCrée.datum(livreObj);
-        animerLivre(livreCrée);
+        let ysol = 750;
+        socket.emit('demandeLivre', livreObj);
+
+        socket.once('envoiLivre', (data) => {
+            livreCrée.select("rect")
+                .attr("fill", data.livreC)
+                .attr("height", data.livreF)
+
+            livreCrée.attr("transform", `translate(10, ${ysol - data.livreF})`)
+            livreCrée.datum(livreObj);
+            animerLivre(livreCrée,800,ysol - data.livreF);
+        })
     }
 
     svg.append("line")
