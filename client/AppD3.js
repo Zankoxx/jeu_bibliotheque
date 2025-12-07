@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const groupeTapis = svg.append("g").attr("id", "groupeTapis"); // Crée le groupe tapis dans le svg
     const groupeLivres = svg.append("g").attr("id", "groupeLivres");     // Crée le groupe livres dans le svg
     groupeLivres.raise();
-    const Vitesse_Tapis = 100 ; // Vitesse du tapis en pixels par seconde
+    const Vitesse_Tapis = 70 ; // Vitesse du tapis en pixels par seconde
     const zonesEtagere = [
     // Bibliothèque 1, étagère du bas
     { x: 50,  y: 470 },
@@ -89,7 +89,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fonction pour faire les zones de placement des livres dans les biblio
     function creerZonesBiblio() {
-    zonesEtagere.forEach((zone, i) => {
+
+        // On s'assure que toutes les zones sont libres au début
+        zonesEtagere.forEach(z => z.occupee = false);
+
+        zonesEtagere.forEach((zone, i) => {
         const z = groupeBiblio.append("rect")
             .attr("x", zone.x)
             .attr("y", zone.y)
@@ -98,11 +102,19 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr("fill", "transparent")
             .attr("stroke", "none")
             .attr("class", "zonePlacement");
-
         // Clique sur une zone = pose du livre
         z.on("click", function(event) {
             if (livreSelectionne == null) return; // Sécurité
-
+            if (zone.occupee === true) {
+                console.log("Impossible, zone déjà prise !");
+                d3.select("#chat")
+                    .append("h3")
+                    .text("Impossible, zone déjà prise !")
+                    .style("color", "purple")
+                    .style("margin", "5px 0")
+                    .style("text-align", "center");
+                return;
+            }
             livreSelectionne.interrupt(); // Stop l'animation
 
             // --- CALCUL DE LA NOUVELLE POSITION ---
@@ -119,10 +131,35 @@ document.addEventListener('DOMContentLoaded', () => {
             livreSelectionne.select("rect")
                 .attr("stroke", "black")
                 .attr("stroke-width", 1);
-
+            zone.occupee = true;
             console.log("Livre posé dans zone", i);
             livreSelectionne = null;
         });
+        z.on ("mouseover", function(event) {
+            // Sécurité
+            if (!livreSelectionne) return;
+            if (zone.occupee === true) return;
+
+            // 1. On récupère la hauteur actuelle du livre sélectionné (encore)
+            let hauteurLivre = livreSelectionne.select("rect").attr("height");
+            // 2. On calcule le Y aligné : Sol de l'étagère - Hauteur du livre
+            let nouveauY = zone.y - hauteurLivre + 130; // 130 = hauteur de la zone
+            d3.select(this)
+                .attr("stroke", "black")
+                .attr("stroke-width", 1)
+                .attr("fill", "lightgrey")
+                // On change la forme de la zone pour qu'elle ressemble au livre
+                .attr("height", hauteurLivre)
+                .attr("y", nouveauY);
+        });
+        z.on("mouseout", function(event) {
+            d3.select(this)
+                .attr("stroke", "none")
+                .attr("fill", "transparent")
+            //On remet la forme d'origine de la zone
+                .attr("height", 130)   // On remet la hauteur totale de l'étagère
+                .attr("y", zone.y);    // On remet le Y d'origine (le haut de la zone)
+        })
     });
     }
 
@@ -284,6 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const infoLivre = livre.datum();
 
             // Affiche toutes les infos dans le div
+            if (infoLivre.littérature === undefined) {infoLivre.littérature = "Inconnue";}
             d3.select("#infoLivre").html(`
                 <b>Titre :</b> ${infoLivre.titre} <br>
                 <b>Auteur :</b> ${infoLivre.auteur} <br>
@@ -297,6 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return livre;
     }
+
 
     // Fonction pour animer un livre sur le tapis roulant
     function animerLivre(livre, xCible, yCible, duree = 10000) {
@@ -313,14 +352,16 @@ document.addEventListener('DOMContentLoaded', () => {
         let livreCrée = dessinerLivre(10, 620);
         let ysol = 750;
         socket.emit('demandeLivre', livreObj);
-
+        //let idLivre = "Livre"+(indexLivreActuel+1);
         socket.once('envoiLivre', (data) => {
             livreCrée.select("rect")
                 .attr("fill", data.livreC)
                 .attr("height", data.livreF)
-
+               // .attr("id",idLivre)
             livreCrée.attr("transform", `translate(10, ${ysol - data.livreF})`)
             livreCrée.datum(livreObj);
+            /*d3.select(`#${idLivre}`).html(`<b class="infoJSONLivreTitre">${livreObj.titre}</b>
+                            <br> <p class="infoJSONLivreAuteur">${livreObj.nom}</p>`);*/
             animerLivre(livreCrée,800,ysol - data.livreF);
         })
     }

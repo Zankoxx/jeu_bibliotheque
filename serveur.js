@@ -117,7 +117,7 @@ io.on('connection', (socket) => {
     });
     socket.on('CommencerPartie', () => {
         io.emit('StartAnimation')
-        io.emit('RéceptionJSON' , {'tabLivres':tabLivres})
+        io.emit('RéceptionJSON' , {'tabLivres':shuffle(tabLivres)})
         NouvellePartie();
         console.log("affichagetableauvide")
         console.log(listeEtageres);
@@ -136,7 +136,7 @@ io.on('connection', (socket) => {
     */
    // reception du livre quand il est placé dans la bibliothèque
     socket.on('receptionLivre' , data => {
-    
+
         })
 
     socket.on('demandeLivre', data => {
@@ -182,54 +182,60 @@ io.on('connection', (socket) => {
 
 
 
-
+function shuffle (tableau) {
+    for (let i = tableau.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [tableau[i], tableau[j]] = [tableau[j], tableau[i]];
+    }
+return tableau;}
 
 function getColor(livreJSON) {
-    switch (livreJSON.genre) {
-        case "roman":
-            return "#FF0000"; // 1. Basique (Rouge)
-        case "théâtre":
-            return "#FFA500"; // 2. Chaude (Orange Vif)
-        case "sf":
-            return "#87CEEB"; // 3. Froide (Bleu Ciel)
-        case "poésie":
-            return "#191970"; // 4. Foncé (Bleu Nuit)
-        case "thriller":
-            return "#98FF98"; // 5. Clair (Vert Menthe)
-        case "policier":
-            return "#008000"; // 6. Basique (Vert)
-        case "feelgood":
-            return "#FFDB58"; // 7. Chaude (Jaune Moutarde)
-        case "aventures":
-            return "#E6E6FA"; // 8. Froide (Violet Lavande)
-        case "essai":
-            return "#36454F"; // 9. Foncé (Gris Anthracite)
-        case "humour":
-            return "#FFD1DC"; // 10. Clair (Rose Poudré)
-        case "fantasy":
-            return "#0000FF"; // 11. Basique (Bleu)
-        default:
-            return "#CCCCCC"; // Une couleur par défaut (Gris clair)
+    if (livreJSON !== null) {
+        switch (livreJSON.genre) {
+            case "roman":
+                return "#FF0000"; // 1. Basique (Rouge)
+            case "théâtre":
+                return "#FFA500"; // 2. Chaude (Orange Vif)
+            case "sf":
+                return "#87CEEB"; // 3. Froide (Bleu Ciel)
+            case "poésie":
+                return "#191970"; // 4. Foncé (Bleu Nuit)
+            case "thriller":
+                return "#7205a6"; // 5. Clair (Vert Menthe)
+            case "policier":
+                return "#008000"; // 6. Basique (Vert)
+            case "feelgood":
+                return "#FFDB58"; // 7. Chaude (Jaune Moutarde)
+            case "aventures":
+                return "#E6E6FA"; // 8. Froide (Violet Lavande)
+            case "essai":
+                return "#36454F"; // 9. Foncé (Gris Anthracite)
+            case "humour":
+                return "#ef07eb"; // 10. Clair (Rose Poudré)
+            case "fantasy":
+                return "#09bc72"; // 11. Basique (Bleu)
+            default:
+                return "#6c6464"; // Une couleur par défaut (Gris clair)
+        }
     }
 }
 
-function getSize(livreJSON)
-{
-    switch(livreJSON.format)
-    {
-        case "medium":
-            return 90
-        case "poche":
-            return 70
-        case "grand":
-            return 110
-        case "maxi":
-            return 120
-        default:
-            return 130 // Une taille par défaut
+function getSize(livreJSON) {
+    if (livreJSON !== null) {
+        switch (livreJSON.format) {
+            case "medium":
+                return 90
+            case "poche":
+                return 70
+            case "grand":
+                return 110
+            case "maxi":
+                return 120
+            default:
+                return 130 // Une taille par défaut
+        }
     }
 }
-
 
 
 
