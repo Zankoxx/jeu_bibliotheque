@@ -116,6 +116,12 @@
             btNouvellePartie.hidden = false
             console.log("La partie pouvant commencer le bouton NouvellePartie apparait")
         })
+
+        socket.on('majScore', scores => {
+            console.log("Mise à jour des scores :", scores);
+            scoreJoueurA.textContent = `Score A : ${scores.scoreA}`;
+            scoreJoueurB.textContent = `Score B : ${scores.scoreB}`;
+        });
         
 
     </script>
@@ -144,6 +150,10 @@
         <div id="chat"></div>
 
         <p>Message : <input id="messageEntree" type="text" onChange="envoiMessage(this)" /></p>
+    </div>
+    <div id="scoreJoueurs">
+        <div id="scoreJoueurA">Score A : 0</div>
+        <div id="scoreJoueurB">Score B : 0</div>
     </div>
 
 </div>

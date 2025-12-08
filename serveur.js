@@ -122,7 +122,6 @@ io.on('connection', (socket) => {
         console.log("affichagetableauvide")
         console.log(listeEtageres);
         console.log("On va faire démarrer l'animation")
-        
     })
     
     socket.on('stop' ,() => {
@@ -138,19 +137,29 @@ io.on('connection', (socket) => {
     socket.on('LivrePlacé' , data => {
         console.log(data.JSONLivre)
 
-        if (data.index < 5)
-            listeEtageres[0][data.index].push(data.JSONLivre);
+        if (data.index < 5) {
+            console.log(listeEtageres)
+            listeEtageres[0][data.index] = data.JSONLivre;
+        }
         else if (data.index < 10)
-            listeEtageres[1][data.index-5].push(data.JSONLivre);
+            listeEtageres[1][data.index-5]= data.JSONLivre;
         else if (data.index < 15)
-            listeEtageres[2][data.index-10].push(data.JSONLivre);
+            listeEtageres[2][data.index-10]= data.JSONLivre;
         else if (data.index < 20)
-            listeEtageres[3][data.index-15].push(data.JSONLivre);
+            listeEtageres[3][data.index-15]= data.JSONLivre;
         else if (data.index < 25)
-            listeEtageres[4][data.index-20].push(data.JSONLivre);    
+            listeEtageres[4][data.index-20]= data.JSONLivre;
         else if (data.index < 30)
-            listeEtageres[5][data.index-25].push(data.JSONLivre);   
-
+            listeEtageres[5][data.index-25]= data.JSONLivre;
+        console.log(listeEtageres[0])
+        if (data.index < 15) {
+           // scoreA += comptagePoint()
+           io.emit('majScore',scoreA)
+        }
+        else {
+            //scoreB += comptagePoint()
+            io.emit('majScore',scoreB)
+        }
         })
 
     socket.on('demandeLivre', data => {
@@ -256,9 +265,9 @@ function getSize(livreJSON) {
 function NouvellePartie (){
     var scoreA = 0;
     var scoreB = 0;
-    var listeEtageres = new Array(NbEtagereT)
+    listeEtageres = new Array(NbEtagereT)
     for (let i = 0; i<NbEtagereT ; i++) {
-        listeEtageres[i] = new Array(nbLivresEtagere)
+        listeEtageres[i] = new Array(nbLivresEtagere).fill(0)
         }
     console.log(listeEtageres)
 
@@ -275,7 +284,7 @@ function EstOrdreAlphabetiqueTitre(etagere) {
 }
 
 /*
-function ComptagePoint(etagere,livre) { // Appelé quand l'étagère est pleine
+function ComptagePoint(etagere) { // Appelé quand l'étagère est pleine
     let ajoutPt = nbLivresEtagere * PointParLivre;
     for (let l of etagere)
     
