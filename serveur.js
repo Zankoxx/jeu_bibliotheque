@@ -136,14 +136,20 @@ io.on('connection', (socket) => {
     */
    // reception du livre quand il est placé dans la bibliothèque
     socket.on('LivrePlacé' , data => {
-            console.log(data.JSONLivre)
+        console.log(data.JSONLivre)
 
-            switch (data.index) {
-                case data.index < 5:
-                    listeEtageres[0][data.index].push(data.JSONLivre);
-                    break
-            }
-            console.log(listeEtageres[0])
+        if (data.index < 5)
+            listeEtageres[0][data.index].push(data.JSONLivre);
+        else if (data.index < 10)
+            listeEtageres[1][data.index-5].push(data.JSONLivre);
+        else if (data.index < 15)
+            listeEtageres[2][data.index-10].push(data.JSONLivre);
+        else if (data.index < 20)
+            listeEtageres[3][data.index-15].push(data.JSONLivre);
+        else if (data.index < 25)
+            listeEtageres[4][data.index-20].push(data.JSONLivre);    
+        else if (data.index < 30)
+            listeEtageres[5][data.index-25].push(data.JSONLivre);   
 
         })
 
@@ -313,6 +319,7 @@ let testPoints = [
 
 
 //console.log(ComptagePoint(testPoints));
+
 
 
 
