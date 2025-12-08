@@ -19,7 +19,8 @@ let listeEtageres = null ;
 let PointParLivre = 100 ;
 const NbEtagereT = nbBiblio * NbEtageresParBiblio
 
-
+let scoreA = 0;
+let scoreB = 0;
 
 // Lancer un serveur
 app.get('/', (req, res) => {
@@ -153,11 +154,11 @@ io.on('connection', (socket) => {
             listeEtageres[5][data.index-25]= data.JSONLivre;
         console.log(listeEtageres[0])
         if (data.index < 15) {
-           // scoreA += comptagePoint()
+            scoreA += comptagePoints()
            io.emit('majScore',scoreA)
         }
         else {
-            //scoreB += comptagePoint()
+            scoreB += comptagePoints()
             io.emit('majScore',scoreB)
         }
         })
@@ -263,8 +264,8 @@ function getSize(livreJSON) {
 
 
 function NouvellePartie (){
-    var scoreA = 0;
-    var scoreB = 0;
+    scoreA = 0;
+    scoreB = 0;
     listeEtageres = new Array(NbEtagereT)
     for (let i = 0; i<NbEtagereT ; i++) {
         listeEtageres[i] = new Array(nbLivresEtagere).fill(0)
@@ -333,4 +334,113 @@ let testPoints = [
 
 
 
+
+function comptagePoints() {
+
+    let score = 0;
+
+    // Fonction utilitaire : vérifie si une étagère est entièrement remplie
+    function estComplete(etagere) {
+        return etagere.every(livre => livre !== null && livre !== 0);
+    }
+
+    // ⭐ Comptage des points par étagère
+    for (let e = 0; e < NbEtageresParBiblio; e++) {
+
+        const etagere = listeEtageres[e];
+
+        // ----- 1. Chaînes (séquences) pour chaque critère -----
+
+        // Critères disponibles
+        const criteres = ["auteur", "genre", "littérature"];
+
+        criteres.forEach(critere => {
+
+            let chaineLongueur = 1;
+
+            for (let i = 1; i < nbLivresEtagere; i++) {
+
+                const prev = etagere[i - 1];
+                const curr = etagere[i];
+
+                // On ignore tant qu’il y a du vide
+                if (!prev || !curr) {
+                    chaineLongueur = 1;
+                    continue;
+                }
+
+                // Si même critère, on augmente la chaîne
+                if (prev[critere] === curr[critere]) {
+                    chaineLongueur++;
+                    score += chaineLongueur;
+                    // +1 pour une chaîne = 2 livres
+                    // +2 pour 3 livres
+                    // +3 pour 4 livres, etc.
+                } else {
+                    chaineLongueur = 1;
+                }
+            }
+        });
+
+
+        // ----- 2. Chaînes pour ordre alphabétique des auteurs -----
+
+        let chainAlpha = 1;
+        for (let i = 1; i < nbLivresEtagere; i++) {
+
+            const prev = etagere[i - 1];
+            const curr = etagere[i];
+
+            if (!prev || !curr) {
+                chainAlpha = 1;
+                continue;
+            }
+            // Comparaison alphabetique
+            if (prev.auteur.localeCompare(curr.auteur) <= 0) {
+                chainAlpha++;
+                score += chainAlpha * 2;  // Bonus un peu plus gros pour cet objectif
+            } else {
+                chainAlpha = 1;
+            }
+        }
+
+
+        // ----- 3. Bonus si l’étagère est complète -----
+
+        if (estComplete(etagere)) {
+
+            let tousGenre = true;
+            let tousAuteur = true;
+            let tousLitt = true;
+
+            const genreRef = etagere[0].genre;
+            const auteurRef = etagere[0].auteur;
+            const littRef = etagere[0].littérature;
+
+            for (let i = 1; i < nbLivresEtagere; i++) {
+                if (etagere[i].genre !== genreRef) tousGenre = false;
+                if (etagere[i].auteur !== auteurRef) tousAuteur = false;
+                if (etagere[i].littérature !== littRef) tousLitt = false;
+            }
+
+            if (tousGenre) {
+                score += 20;
+                console.log(`Bonus : étagère ${e} homogène en genre (+20)`);
+            }
+
+            if (tousAuteur) {
+                score += 30;
+                console.log(`Bonus : étagère ${e} homogène en auteur (+30)`);
+            }
+
+            if (tousLitt) {
+                score += 15;
+                console.log(`Bonus : étagère ${e} homogène en littérature (+15)`);
+            }
+        }
+    }
+
+    console.log("➡️ Score total actuel :", score);
+    return score;
+}
 
