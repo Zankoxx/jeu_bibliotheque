@@ -142,24 +142,28 @@ io.on('connection', (socket) => {
             console.log(listeEtageres)
             listeEtageres[0][data.index] = data.JSONLivre;
         }
-        else if (data.index < 10)
+        else if (data.index < 10){
             listeEtageres[1][data.index-5]= data.JSONLivre;
-        else if (data.index < 15)
+            console.log(listeEtageres[1])}
+        else if (data.index < 15){
             listeEtageres[2][data.index-10]= data.JSONLivre;
-        else if (data.index < 20)
+            console.log(listeEtageres[2])}
+        else if (data.index < 20){
             listeEtageres[3][data.index-15]= data.JSONLivre;
-        else if (data.index < 25)
+            console.log(listeEtageres[3])}
+        else if (data.index < 25){
             listeEtageres[4][data.index-20]= data.JSONLivre;
-        else if (data.index < 30)
+            console.log(listeEtageres[4])}
+        else if (data.index < 30){
             listeEtageres[5][data.index-25]= data.JSONLivre;
-        console.log(listeEtageres[0])
+            console.log(listeEtageres[5])}
         if (data.index < 15) {
             scoreA += comptagePoints()
-           io.emit('majScore',scoreA)
+           io.emit('majScoreA',scoreA)
         }
         else {
             scoreB += comptagePoints()
-            io.emit('majScore',scoreB)
+            io.emit('majScoreB',scoreB)
         }
         })
 
@@ -345,7 +349,7 @@ function comptagePoints() {
     }
 
     // ⭐ Comptage des points par étagère
-    for (let e = 0; e < NbEtageresParBiblio; e++) {
+    for (let e = 0; e < NbEtagereT; e++) {
 
         const etagere = listeEtageres[e];
 

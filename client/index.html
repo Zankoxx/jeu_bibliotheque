@@ -117,10 +117,14 @@
             console.log("La partie pouvant commencer le bouton NouvellePartie apparait")
         })
 
-        socket.on('majScore', scores => {
-            console.log("Mise à jour des scores :", scores);
-            scoreJoueurA.textContent = `Score A : ${scores.scoreA}`;
-            scoreJoueurB.textContent = `Score B : ${scores.scoreB}`;
+        socket.on('majScoreA', score => {
+            console.log("Mise à jour des scores :", score);
+            scoreJoueurA.textContent = `Score A : ${score}`;
+        });
+
+        socket.on('majScoreB', score => {
+            console.log("Mise à jour des scores :", score);
+            scoreJoueurB.textContent = `Score B : ${score}`;
         });
         
 
