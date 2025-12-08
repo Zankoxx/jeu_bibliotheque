@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     .style("color", "purple")
                     .style("margin", "5px 0")
                     .style("text-align", "center");
+
                 return;
             }
             livreSelectionne.interrupt(); // Stop l'animation
@@ -133,6 +134,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 .attr("stroke-width", 1);
             zone.occupee = true;
             console.log("Livre posé dans zone", i);
+            if (zone.occupee){
+                console.log(livreSelectionne.datum())
+                let info = livreSelectionne.datum()
+                socket.emit('LivrePlacé',
+                    {'index':i,
+                    'JSONLivre':info
+                        })
+            }
             livreSelectionne = null;
         });
         z.on ("mouseover", function(event) {
