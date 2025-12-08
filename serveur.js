@@ -135,12 +135,19 @@ io.on('connection', (socket) => {
     }) 
     */
    // reception du livre quand il est placé dans la bibliothèque
-    socket.on('receptionLivre' , data => {
+    socket.on('LivrePlacé' , data => {
+            console.log(data.JSONLivre)
+
+            switch (data.index) {
+                case data.index < 5:
+                    listeEtageres[0][data.index].push(data.JSONLivre);
+                    break
+            }
+            console.log(listeEtageres[0])
 
         })
 
     socket.on('demandeLivre', data => {
-        console.log(data)
         socket.emit('envoiLivre', {'livreC':getColor(data),'livreF':getSize(data)})
     })
 
@@ -181,7 +188,7 @@ io.on('connection', (socket) => {
 
 
 
-
+// Mélanger le JSON
 function shuffle (tableau) {
     for (let i = tableau.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -223,14 +230,14 @@ function getColor(livreJSON) {
 function getSize(livreJSON) {
     if (livreJSON !== null) {
         switch (livreJSON.format) {
-            case "medium":
-                return 90
             case "poche":
                 return 70
+            case "medium":
+                return 90
             case "grand":
                 return 110
             case "maxi":
-                return 120
+                return 130
             default:
                 return 130 // Une taille par défaut
         }
