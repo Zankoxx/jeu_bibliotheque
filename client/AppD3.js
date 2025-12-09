@@ -96,9 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
         zonesEtagere.forEach((zone, i) => {
         const z = groupeBiblio.append("rect")
             .attr("x", zone.x)
-            .attr("y", zone.y)
+            .attr("y", zone.y-20)
             .attr("width", 60)
-            .attr("height", 130)
+            .attr("height", 150)
             .attr("fill", "transparent")
             .attr("stroke", "none")
             .attr("class", "zonePlacement");
@@ -166,8 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 .attr("stroke", "none")
                 .attr("fill", "transparent")
             //On remet la forme d'origine de la zone
-                .attr("height", 130)   // On remet la hauteur totale de l'étagère
-                .attr("y", zone.y);    // On remet le Y d'origine (le haut de la zone)
+                .attr("height", 150)   // On remet la hauteur totale de l'étagère
+                .attr("y", zone.y-20);    // On remet le Y d'origine (le haut de la zone)
         })
     });
     }
@@ -331,14 +331,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Affiche toutes les infos dans le div
             if (infoLivre.littérature === undefined) {infoLivre.littérature = "Inconnue";}
-            d3.select("#infoLivre").html(`
-                <b>Titre :</b> ${infoLivre.titre} <br>
-                <b>Auteur :</b> ${infoLivre.auteur} <br>
-                <b>Genre :</b> ${infoLivre.genre} <br>
-                <b>Littérature :</b> ${infoLivre.littérature} <br>
-                <b>Format :</b> ${infoLivre.format}
-            `);
 
+// 3. On injecte la variable 'titreFormate' (et pas infoLivre.titre)
+            d3.select("#infoLivre").html(`
+                    <div style="display: flex; flex-direction: column; align-items: center; font-size:15px;gap: 2px; margin-bottom: 4px;">
+                        <span style="font-weight: bold; font-size: 1.1em;">Titre</span>
+                        
+                        <span style="text-align: center; line-height: 1.1;">
+                            ${couperEnLignes(infoLivre.titre, 3)}
+                        </span>
+                        </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; font-size:14px; margin-bottom: 4px;">
+                        <span style="font-weight: bold; font-size: 1.1em;">Auteur</span>
+                        <span style="text-align: center; line-height: 1.1;">
+                            ${couperEnLignes(infoLivre.auteur, 2)}
+                        </span>
+                        </div>
+                    <div style="line-height: 1.4;">
+                        <b>Genre :</b> ${infoLivre.genre} <br>
+                        <b>Littérature :</b> ${infoLivre.littérature} <br>
+                        <b>Format :</b> ${infoLivre.format}
+                    </div>
+                `);
             console.log("Livre sélectionné");
         })
 
@@ -434,4 +448,15 @@ document.addEventListener('DOMContentLoaded', () => {
         stopAnimation()
         console.log("l'animation s'arrête")
     })
+
+    // 1. La fonction de sécurité pour couper proprement (à mettre en haut ou avant le d3)
+    function couperEnLignes(texte, nbMots) {
+        const mots = texte.trim().split(/\s+/); // Coupe sur n'importe quel espace
+        let lignes = [];
+        while (mots.length > 0) {
+            lignes.push(mots.splice(0, nbMots).join(' ')); // Prend des paquets de 'nbMots'
+        }
+        return lignes.join('<br>'); // Rejoint avec le saut HTML
+    }
+
 });

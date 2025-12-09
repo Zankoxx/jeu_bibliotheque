@@ -251,13 +251,13 @@ function getSize(livreJSON) {
     if (livreJSON !== null) {
         switch (livreJSON.format) {
             case "poche":
-                return 70
-            case "medium":
                 return 90
-            case "grand":
+            case "medium":
                 return 110
-            case "maxi":
+            case "grand":
                 return 130
+            case "maxi":
+                return 150
             default:
                 return 130 // Une taille par défaut
         }
