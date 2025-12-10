@@ -1,4 +1,3 @@
-<!-- File: `index.html` -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -8,39 +7,68 @@
     <script src="/socket.io/socket.io.js"></script>
     <link rel="stylesheet" href="styles.css">
     <script>
-        const socket = io(); // /socket.io/socket.io.js doit être disponible
-
+        const socket = io();
+        let tabJoueurs = [];
         var numJoueur = -1;
-        // demande Joueurs (je sais pas comment est appelé cette fonction désolé)
+        let scoreA_actuel = 0;
+        let scoreB_actuel = 0;
+
         function demandeJoueurs() {
             console.log('Demande des joueurs');
             socket.emit('joueurs');
         }
 
-        // Pour afficher le nombre de joueurs sur la page
         socket.on('joueurs', nomsJoueurs => {
-            console.log(`Noms des joueurs reçus du serveur : ${nomJoueurs}`);
+            console.log(`Noms des joueurs reçus : ${nomsJoueurs}`);
             listeJoueurs.value = nomsJoueurs;
+            tabJoueurs = nomsJoueurs.trim().split(' ');
+            mettreAJourNomsScores();
         });
+        function mettreAJourNomsScores() {
+            // 1. Définir les noms par défaut
+            let nomA = "Joueur A";
+            let nomB = "Joueur B (En attente)";
 
+            // 2. Si on a des joueurs dans le tableau, on remplace
+            if (tabJoueurs && tabJoueurs.length > 0) {
+                // Sécurité : on vérifie que le nom n'est pas vide
+                if (tabJoueurs[0] && tabJoueurs[0].trim() !== "") {
+                    nomA = tabJoueurs[0];
+                }
+            }
+
+            if (tabJoueurs && tabJoueurs.length > 1) {
+                if (tabJoueurs[1] && tabJoueurs[1].trim() !== "") {
+                    nomB = tabJoueurs[1];
+                }
+            }
+
+            // 3. On met à jour l'affichage en gardant le score actuel
+            document.getElementById('scoreJoueurA').textContent = `Score ${nomA} : ${scoreA_actuel}`;
+            document.getElementById('scoreJoueurB').textContent = `Score ${nomB} : ${scoreB_actuel}`;
+        }
         function entrerDansLaPartie() {
             let nom = nomJ.value;
             console.log("Entrée de "+nom);
-            if (nom != "" && nom != " ") socket.emit('entree', nom);
+            if (nom !== "" && nom !== " ") socket.emit('entree', nom);
         }
 
-
         socket.on('entree', data => {
-            console.log("Le serveur confirme mon entrée avec numJoueur="+data.numJoueur);
+            console.log("Entrée confirmée numJoueur="+data.numJoueur);
             numJoueur = data.numJoueur;
             btentree.disabled = true;
             btsortie.disabled = false;
             listeJoueurs.textContent = data.nomsJoueurs;
             numJ.textContent = data.numJoueur;
+            tabJoueurs = data.nomsJoueurs.trim().split(' ').filter(Boolean);
+            mettreAJourNomsScores();
         });
+
         socket.on('entreeAutreJoueur', data => {
-            console.log("Le serveur confirme l'entrée de "+data.nomJoueur);
+            console.log("Entrée autre joueur: "+data.nomJoueur);
             listeJoueurs.textContent = data.nomsJoueurs;
+            tabJoueurs = data.nomsJoueurs.trim().split(' ').filter(Boolean);
+            mettreAJourNomsScores();
         });
 
         function quitterLaPartie() {
@@ -49,85 +77,130 @@
             if (nom != "" && nom != " ") socket.emit('sortie', nom);
         }
 
-
         socket.on('sortie', data => {
-            console.log("Le serveur confirme ma sortie");
-            //console.dir(data);
+            console.log("Sortie confirmée");
             numJoueur = -1;
             nomJ.value = "";
             numJ.textContent = "";
             btentree.disabled = false;
             btsortie.disabled = true;
             listeJoueurs.textContent = data.nomsJoueurs;
-            messageServeur.textContent = "";
+
+            // Mise à jour de la variable tableau
+            tabJoueurs = data.nomsJoueurs.trim().split(' ').filter(Boolean);
+            mettreAJourNomsScores();
         });
+
         socket.on('sortieAutreJoueur', data => {
-            console.log(`Le serveur confirme la sortie de $(data.nomJoueur) de numéro $(data.numJoueur)`);
+            console.log(`Sortie autre joueur: ${data.nomJoueur}`);
             if (numJoueur > data.numJoueur) {
                 numJoueur--;
                 numJ.textContent = numJoueur;
             }
             listeJoueurs.textContent = data.nomsJoueurs;
+
+            // Mise à jour de la variable tableau
+            tabJoueurs = data.nomsJoueurs.trim().split(' ').filter(Boolean);
+            mettreAJourNomsScores();
         });
-        // Envoie du message avec le numJoueur et le texte du message associé
+
         function envoiMessage(input) {
-            console.log("Envoi du message :", input.value)
+            console.log("Envoi message :", input.value)
             socket.emit("message", {'numJoueur':numJoueur, 'texte':input.value});
             input.value = "";
-
         }
-
-        // Réception d'un message classique et l'ajoute en dessous des autres chat
-        socket.on('message', message => {
-            console.log("Réception du message :", message);
-            chat.innerHTML += `<div class="messages" class = "autre" style="text-align:right">${message}</div> <br>` // ou text-align:right si le messageAutre marche
-        });
-
-        socket.on('messageAutre',message => {
-            console.log("Réception du message :", message);
-            chat.innerHTML += `<div class="messages" class ="moi" style="text-align:left">${message}</div> <br>`
-        })
-
-
-
-        // Réception du message serveur et affiche sur le chat avec une couleur en fonction du type de message
-        socket.on('messageServeur', message => {
-            console.log("Message serveur :", message);
-            let couleur = "black";
-
-            if (message.includes("rejoint la partie") ) {
-                couleur = "green";
-            } else if (message.includes("quitté la partie")
-                || message.includes('Nom de joueur déjà enregistré')
-                || message.includes('Nombre de joueurs déjà atteint !')) {
-                couleur = "red";
-            }
-            chat.innerHTML += `<h3 style="color:${couleur}; margin:5px 0; text-align:center">${message}</h3>`;
-        });
 
         function NouvellePartie() {
             socket.emit('CommencerPartie')
             btNouvellePartie.hidden = true
-            console.log("Début de la Nouvelle Partie !")
-            } 
-        
+            console.log("Début Nouvelle Partie")
+        }
 
         socket.on('NouvellePartie', () => {
             btNouvellePartie.hidden = false
-            console.log("La partie pouvant commencer le bouton NouvellePartie apparait")
+            console.log("Bouton Nouvelle Partie visible")
         })
 
+        // --- Fonctions Chat Mises à jour ---
+
+        function getHeureActuelle() {
+            const now = new Date();
+            const heures = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return `${heures}:${minutes}`;
+        }
+
+        function afficherMessageErreur(message) {
+            // On peut l'afficher en tant que message système rouge dans le chat
+            // ou garder un div séparé. Ici je l'ajoute au chat en rouge via CSS inline ou une classe error
+            // Pour rester simple, on utilise le system message mais on pourrait ajouter du style.
+            ajouterMessageChat("⚠️ " + message, 'system');
+        }
+
+        // Nouvelle fonction de chat compatible avec styles.css
+        function ajouterMessageChat(message, type = 'system', pseudo = null) {
+            const chat = document.getElementById('chat');
+
+            // Si c'est un message reçu, on ajoute le petit label pseudo avant la bulle
+            if (type === 'received' && pseudo) {
+                const pseudoDiv = document.createElement('div');
+                pseudoDiv.className = 'pseudo-label';
+                pseudoDiv.textContent = pseudo;
+                chat.appendChild(pseudoDiv);
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `messages ${type}`;
+
+            if (type === 'system') {
+                messageDiv.textContent = message;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="message-content">${message}</div>
+                    <div class="message-time">${getHeureActuelle()}</div>
+                `;
+            }
+
+            chat.appendChild(messageDiv);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // Socket listeners Chat
+
+        socket.on('messageServeur', message => {
+            const errs = ['déjà enregistré', 'déjà atteint', 'entrer dans la partie', 'Joueur inconnu'];
+            // Simple filtre pour savoir si c'est une erreur critique ou une info
+            // Mais visuellement, on peut tout mettre en 'system'
+            ajouterMessageChat(message, 'system');
+        });
+
+        // Mon message
+        socket.on('message', message => {
+            // Format serveur: "Moi : MonTexte"
+            // On découpe pour ne garder que le texte
+            const parts = message.split(' : ');
+            const contenu = parts.slice(1).join(' : ');
+            ajouterMessageChat(contenu, 'sent');
+        });
+
+        // Message des autres
+        socket.on('messageAutre', message => {
+            // Format serveur: "L'autre : SonTexte"
+            const parts = message.split(' : ');
+            const pseudo = parts[0];
+            const contenu = parts.slice(1).join(' : ');
+            ajouterMessageChat(contenu, 'received', pseudo);
+        });
         socket.on('majScoreA', score => {
-            console.log("Mise à jour des scores :", score);
-            scoreJoueurA.textContent = `Score A : ${score}`;
+            // On vérifie SI on a un nom, sinon on met "Joueur A" par défaut
+            scoreB_actuel = score;
+            mettreAJourNomsScores();
         });
 
         socket.on('majScoreB', score => {
-            console.log("Mise à jour des scores :", score);
-            scoreJoueurB.textContent = `Score B : ${score}`;
+            scoreA_actuel = score;
+            mettreAJourNomsScores();
         });
-        
-
     </script>
 </head>
 <body>
@@ -138,33 +211,25 @@
         <div id="info-joueurs">
             Joueurs : <label id="listeJoueurs"></label><br/>
             <p>Votre numéro : <label id="numJ"></label></p>
-            <p>Votre nom <input id="nomJ" type="text" /></p>
+            <p><input id="nomJ" type="text" placeholder="Écrivez votre nom..."/></p>
             <button type="button" id="btentree" onClick="entrerDansLaPartie()">Entrer dans la partie</button>
             <button type="button" id="btsortie" disabled onClick="quitterLaPartie()">Quitter la partie</button>
             <br><br>
             <button type="button" id="btNouvellePartie" hidden onclick="NouvellePartie()" > Démarrer Partie</button>
-            <!--
-            <button type ="button" id="btStopPartie" hidden onclick ="socket.emit('stop')" > Stop</button>
-            <button type="button" id="btReprendrePartie" hidden  onclick="socket.emit('reprendre')"> Reprendre</button>
-            -->
         </div>
-
-        <br/>
 
         <div id="chat"></div>
 
-        <p>Message : <input id="messageEntree" type="text" onChange="envoiMessage(this)" /></p>
-    </div>
-    <div id="scoreJoueurs">
-        <div id="scoreJoueurA">Score A : 0</div>
-        <div id="scoreJoueurB">Score B : 0</div>
+        <p>Message : <input id="messageEntree" type="text" onChange="envoiMessage(this)" placeholder="Écrivez votre message..." /></p>
     </div>
 
+    <div id="scoreJoueurs">
+        <div id="scoreJoueurA">...</div>
+        <div id="scoreJoueurB">...</div>
+    </div>
+    <div id = "infoLivre">Aucun livre</div>
 </div>
-<div id = "infoLivre"></div>
 
 <script src="AppD3.js" defer></script>
 </body>
 </html>
-
-

@@ -7,6 +7,8 @@ const path = require('path');
 
 // Lecture du fichier JSON des livres
 const fs = require('fs')
+// Assurez-vous que le chemin est correct selon votre structure de dossier
+// Ici on suppose que le dossier est jeu_bibliotheque
 const Livresbrut= fs.readFileSync('./client/livres.json','utf8');
 const tabLivres = JSON.parse(Livresbrut);
 
@@ -34,17 +36,14 @@ app.get('/AppD3.js', (req, res) => {
 app.get ('/styles.css', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'styles.css'));
 });
-/*app.get('/ClientSocket.js', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client', 'ClientSocket.js'));
-})*/
 
 var nbJoueurs = 2; // Limite de nombre de joueurs Maxiumm
 var joueurs = []; // Liste des joueurs géré par le serveur
-// var jeton = -1; // a une utilité pour savoir a qui est le tout mais pas indispensable
 
 server.listen(8888, () => {
     console.log('Le serveur écoute sur le port 8888');
 });
+
 // Connexion globale de tous les joueurs
 io.on('connection', (socket) => {
     //
@@ -64,10 +63,8 @@ io.on('connection', (socket) => {
                 socket.emit('messageServeur', 'Vous avez rejoint la partie');
                 socket.broadcast.emit('messageServeur', `${nomJoueur} a rejoint la partie`);
                 if (joueurs.length == nbJoueurs) {
-                    // jeton = 0;
                     console.log("Le jeton passe à 0, la partie peut commencer");
                     io.emit('messageServeur', 'La partie peut commencer');
-                    
                     io.emit('NouvellePartie')
                 }
                 let nomsJoueurs = "";
@@ -88,13 +85,12 @@ io.on('connection', (socket) => {
         let index = joueurs.indexOf(nomJoueur)
         if  (index != -1) {
             joueurs.splice(index, 1);
-            // jeton = -1;
             let nomsJoueurs = "";
             for (let nom of joueurs) nomsJoueurs += nom+" ";
             socket.emit('sortie', {'nomJoueur':nomJoueur,
                 'nomsJoueurs':nomsJoueurs});
             socket.broadcast.emit('sortieAutreJoueur',
-                {'nomJoueur':nomJoueur, // Pour information
+                {'nomJoueur':nomJoueur,
                     'numJoueur': index,
                     'nomsJoueurs':nomsJoueurs});
             socket.emit('messageServeur', 'Vous avez quitté la partie');
@@ -109,11 +105,8 @@ io.on('connection', (socket) => {
         else {
             let message = joueurs[data.numJoueur] + " : " + data.texte;
             console.log("Message à diffuser :", message)
-            // io.emit('message',message)
-
             socket.emit('message', message);
             socket.broadcast.emit('messageAutre',message)
-            // socket.broadcast.emit('messageAutre',{'message':message,'pseudo':data.numJoueur}) si affichage du pseudo en dehors du message
         }
     });
     socket.on('CommencerPartie', () => {
@@ -124,17 +117,12 @@ io.on('connection', (socket) => {
         console.log(listeEtageres);
         console.log("On va faire démarrer l'animation")
     })
-    
+
     socket.on('stop' ,() => {
         io.emit('StopAnimation')
     })
-    /* 
-    socket.on('reprendre',() => {
-        io.emit('StartAnimation')
-        io.emit('EtatBoutonStopetReprendre')
-    }) 
-    */
-   // reception du livre quand il est placé dans la bibliothèque
+
+    // reception du livre quand il est placé dans la bibliothèque
     socket.on('LivrePlacé' , data => {
         console.log(data.JSONLivre)
 
@@ -158,14 +146,23 @@ io.on('connection', (socket) => {
             listeEtageres[5][data.index-25]= data.JSONLivre;
             console.log(listeEtageres[5])}
         if (data.index < 15) {
-            scoreA += comptagePoints()
-           io.emit('majScoreA',scoreA)
+            scoreA = comptagePoints()
+            io.emit('majScoreA',scoreA)
         }
         else {
-            scoreB += comptagePoints()
+            scoreB = comptagePoints()
             io.emit('majScoreB',scoreB)
         }
-        })
+        socket.broadcast.emit('LivreAdverse',
+            {
+                'index':data.index,
+                'couleur':getColor(data.JSONLivre),
+                'taille':getSize(data.JSONLivre),
+                'titre':data.JSONLivre.titre,
+                'auteur':data.JSONLivre.auteur,
+            });
+
+    })
 
     socket.on('demandeLivre', data => {
         socket.emit('envoiLivre', {'livreC':getColor(data),'livreF':getSize(data)})
@@ -173,76 +170,29 @@ io.on('connection', (socket) => {
 
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Mélanger le JSON
 function shuffle (tableau) {
     for (let i = tableau.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [tableau[i], tableau[j]] = [tableau[j], tableau[i]];
     }
-return tableau;}
+    return tableau;}
 
 function getColor(livreJSON) {
     if (livreJSON !== null) {
         switch (livreJSON.genre) {
-            case "roman":
-                return "#FF0000"; // 1. Basique (Rouge)
-            case "théâtre":
-                return "#FFA500"; // 2. Chaude (Orange Vif)
-            case "sf":
-                return "#87CEEB"; // 3. Froide (Bleu Ciel)
-            case "poésie":
-                return "#191970"; // 4. Foncé (Bleu Nuit)
-            case "thriller":
-                return "#7205a6"; // 5. Clair (Vert Menthe)
-            case "policier":
-                return "#008000"; // 6. Basique (Vert)
-            case "feelgood":
-                return "#FFDB58"; // 7. Chaude (Jaune Moutarde)
-            case "aventures":
-                return "#E6E6FA"; // 8. Froide (Violet Lavande)
-            case "essai":
-                return "#36454F"; // 9. Foncé (Gris Anthracite)
-            case "humour":
-                return "#ef07eb"; // 10. Clair (Rose Poudré)
-            case "fantasy":
-                return "#09bc72"; // 11. Basique (Bleu)
-            default:
-                return "#6c6464"; // Une couleur par défaut (Gris clair)
+            case "roman": return "#FF0000";
+            case "théâtre": return "#FFA500";
+            case "sf": return "#87CEEB";
+            case "poésie": return "#191970";
+            case "thriller": return "#7205a6";
+            case "policier": return "#008000";
+            case "feelgood": return "#FFDB58";
+            case "aventures": return "#E6E6FA";
+            case "essai": return "#36454F";
+            case "humour": return "#ef07eb";
+            case "fantasy": return "#09bc72";
+            default: return "#6c6464";
         }
     }
 }
@@ -250,22 +200,14 @@ function getColor(livreJSON) {
 function getSize(livreJSON) {
     if (livreJSON !== null) {
         switch (livreJSON.format) {
-            case "poche":
-                return 90
-            case "medium":
-                return 110
-            case "grand":
-                return 130
-            case "maxi":
-                return 150
-            default:
-                return 130 // Une taille par défaut
+            case "poche": return 90
+            case "medium": return 110
+            case "grand": return 130
+            case "maxi": return 150
+            default: return 130
         }
     }
 }
-
-
-
 
 function NouvellePartie (){
     scoreA = 0;
@@ -273,7 +215,7 @@ function NouvellePartie (){
     listeEtageres = new Array(NbEtagereT)
     for (let i = 0; i<NbEtagereT ; i++) {
         listeEtageres[i] = new Array(nbLivresEtagere).fill(0)
-        }
+    }
     console.log(listeEtageres)
 
 }
@@ -288,131 +230,50 @@ function EstOrdreAlphabetiqueTitre(etagere) {
     return true;
 }
 
-/*
-function ComptagePoint(etagere) { // Appelé quand l'étagère est pleine
-    let ajoutPt = nbLivresEtagere * PointParLivre;
-    for (let l of etagere)
-    
-    bonus
-    if (etagere.every(l =>  l.genre === livreRef.genre )) {ajoutPt *= 2}
-
-    if (etagere.every(l => l.auteur === livreRef.auteur )) {ajoutPt *= 10}
-
-    if (etagere.every(l =>  l.littérature === livreRef.littérature)) {ajoutPt *= 6}
-
-    if (etagere.every(l =>  l.titre[0] === livreRef.titre)[0]) {ajoutPt *= 3} if (EstOrdreAlphabetiqueTitre(etagere)) {ajoutPt *=10}
-    
-
-    
-    if (listeEtageres.indexOf(etagere) < (NbEtagereT/2)){  // Si c'est l'étagère du joueur 1
-        scoreA += ajoutPt
-    }
-    else {
-        scoreB += ajoutPt
-    }
-    
-
-    return ajoutPt;}
-*/
-
-
-
-
-
-for (const livre of tabLivres){ // Test affichage livre
-    // console.log(livre.titre)
-}
-
-let testPoints = [
-    {"titre":"Ca pue", "auteur":"Albert Camus", "nom":"Camus", "genre":"roman", "format":"medium"},
-    {"titre":"C'est étranger", "auteur":"Albert Camus", "nom":"Camus", "genre":"roman", "format":"medium"},
-    {"titre":"Cartes sur table", "auteur":"Albert Camus", "nom":"Christie", "genre":"roman", "littérature":"anglo-saxonne","format":"poche"},
-    {"titre":"Cartes sur table", "auteur":"Albert Camus", "nom":"Christie", "genre":"roman", "littérature":"anglo-saxonne","format":"poche"},
-    {"titre":"Cartes sur table", "auteur":"Albert Camus", "nom":"Christie", "genre":"roman", "littérature":"anglo-saxonne","format":"poche"}
-]
-
-
-//console.log(ComptagePoint(testPoints));
-
-
-
-
-
-
 function comptagePoints() {
-
     let score = 0;
-
-    // Fonction utilitaire : vérifie si une étagère est entièrement remplie
     function estComplete(etagere) {
         return etagere.every(livre => livre !== null && livre !== 0);
     }
 
-    // ⭐ Comptage des points par étagère
     for (let e = 0; e < NbEtagereT; e++) {
-
         const etagere = listeEtageres[e];
-
-        // ----- 1. Chaînes (séquences) pour chaque critère -----
-
-        // Critères disponibles
         const criteres = ["auteur", "genre", "littérature"];
-
         criteres.forEach(critere => {
-
             let chaineLongueur = 1;
-
             for (let i = 1; i < nbLivresEtagere; i++) {
-
                 const prev = etagere[i - 1];
                 const curr = etagere[i];
-
-                // On ignore tant qu’il y a du vide
                 if (!prev || !curr) {
                     chaineLongueur = 1;
                     continue;
                 }
-
-                // Si même critère, on augmente la chaîne
                 if (prev[critere] === curr[critere]) {
                     chaineLongueur++;
                     score += chaineLongueur;
-                    // +1 pour une chaîne = 2 livres
-                    // +2 pour 3 livres
-                    // +3 pour 4 livres, etc.
                 } else {
                     chaineLongueur = 1;
                 }
             }
         });
 
-
-        // ----- 2. Chaînes pour ordre alphabétique des auteurs -----
-
         let chainAlpha = 1;
         for (let i = 1; i < nbLivresEtagere; i++) {
-
             const prev = etagere[i - 1];
             const curr = etagere[i];
-
             if (!prev || !curr) {
                 chainAlpha = 1;
                 continue;
             }
-            // Comparaison alphabetique
             if (prev.auteur.localeCompare(curr.auteur) <= 0) {
                 chainAlpha++;
-                score += chainAlpha * 2;  // Bonus un peu plus gros pour cet objectif
+                score += chainAlpha * 2;
             } else {
                 chainAlpha = 1;
             }
         }
 
-
-        // ----- 3. Bonus si l’étagère est complète -----
-
         if (estComplete(etagere)) {
-
             let tousGenre = true;
             let tousAuteur = true;
             let tousLitt = true;
@@ -427,24 +288,11 @@ function comptagePoints() {
                 if (etagere[i].littérature !== littRef) tousLitt = false;
             }
 
-            if (tousGenre) {
-                score += 20;
-                console.log(`Bonus : étagère ${e} homogène en genre (+20)`);
-            }
-
-            if (tousAuteur) {
-                score += 30;
-                console.log(`Bonus : étagère ${e} homogène en auteur (+30)`);
-            }
-
-            if (tousLitt) {
-                score += 15;
-                console.log(`Bonus : étagère ${e} homogène en littérature (+15)`);
-            }
+            if (tousGenre) { score += 20; }
+            if (tousAuteur) { score += 30; }
+            if (tousLitt) { score += 15; }
         }
     }
-
     console.log("➡️ Score total actuel :", score);
     return score;
 }
-

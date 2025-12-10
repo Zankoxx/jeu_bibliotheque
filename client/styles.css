@@ -1,132 +1,287 @@
-/* conteneur flex pour aligner horizontalement */
-#affichageGlobal {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* gauche = svg, droite = chat */
-#affichageJeu { width: auto; box-sizing: border-box; }
-#lobby      { width: 35%;
+* {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    text-align: right;
-    margin-left: auto;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    /* le font qui va probablement changé */
 }
 
-
-/* messages/liste */
-#chat { width: 70%; height: 500px; border: 1px solid #aaa; overflow-y: auto; padding: 5px; }
-.messages {
-    font-weight: bold;
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #2d3748;
 }
-/* faire remplir le SVG de son conteneur */
+
+/* Layout principal en grid */
+#affichageGlobal {
+    display: grid;
+    grid-template-columns: auto 280px auto;
+    grid-template-rows: auto 1fr auto;
+    gap: 20px;
+    max-width: 1800px;
+    margin: 0 auto;
+    align-items: start;
+}
+
+/* Zone de jeu (SVG) */
+#affichageJeu {
+    grid-column: 1;
+    grid-row: 1 / 4;
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
 #affichageJeu svg {
     width: 100% !important;
     height: auto;
-    border: 1px solid #000;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
     display: block;
 }
-/* Adaptation de la zone d'informations au lieu de .informations */
-#info-joueurs {
-    padding: 10px 20px;
-    background-color: #e8e8e8;
-    border-bottom: 1px solid #c9c9c9;
-    font-size: 14px;
+
+/* Scores */
+#scoreJoueurs {
+    grid-column: 2;
+    grid-row: 1;
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#scoreJoueurA, #scoreJoueurB {
+    text-align: center;
+    padding: 15px;
+    border-radius: 12px;
     font-weight: 600;
-    color: #444;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    z-index: 10;
+    font-size: 16px;
 }
 
-/* Style spécifique pour les labels à l'intérieur de l'info-joueurs */
-#info-joueurs label {
-    font-weight: 400;
-    color: #326de9; /* Couleur du thème */
-}
-
-/* Style de l'input nomJ */
-#info-joueurs #nomJ {
-    padding: 3px 6px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-}
-
-/* Style des boutons (réutilisé du game-controls pour la cohérence) */
-#info-joueurs button {
-    padding: 6px 10px;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 18px;
-    margin-left: 5px;
-}
-
-#btentree {
-    background-color: #326de9;
+#scoreJoueurA {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
 }
-#btentree:disabled {
-    background-color: #cccccc; /* Gris si désactivé */
-    cursor: default;
-    color: #666;
-}
-#btsortie {
-    background-color: #e93232;
+
+#scoreJoueurB {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     color: white;
 }
-#btsortie:disabled {
-    background-color: #cccccc; /* Gris si désactivé */
-    cursor: default;
-    color: #666;
-}
-#btNouvellePartie {
-    position : relative;
-    text-align : center;
-    background-color: #2bb608;
-    color: white; 
-}
 
-#btStopPartie {
-    position : relative;
-    text-align : center;
-    background-color: #720c04;
-    color: white; 
-}
-
-#btReprendrePartie {
-    position : relative;
-    text-align : center;
-    background-color: #145304;
-    color: white; 
-}
-
+/* Info livre */
 #infoLivre {
+    grid-column: 2;
+    grid-row: 3;
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
+    justify-content: center;
     flex-direction: column;
-    position: fixed;
-    min-width: 150px;
-    top: 60%;
-    left: 55%;
-    transform: translate(45%, 50%) scale(1.5);
-    padding: 10px;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 6px;
     font-size: 14px;
-    color: #333;
+    color: #2d3748;
+    text-align: center;
 }
-
 
 .infoJSONLivreAuteur {
-    font-size : 7px;
+    font-size: 12px;
+    color: #718096;
+    margin-top: 5px;
 }
 
+/* Lobby */
+#lobby {
+    grid-column: 3;
+    grid-row: 1 / 4;
+    width: 400px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    max-height: calc(100vh - 40px);
+}
 
+/* En-tête du lobby */
+#info-joueurs {
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px 16px 0 0;
+    font-size: 14px;
+    font-weight: 500;
+}
 
+#info-joueurs p { margin: 8px 0; }
+#info-joueurs label { font-weight: 600; color: #ffd700; }
+
+#info-joueurs #nomJ {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgb(14, 8, 8);
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    width: 100%;
+    margin-top: 5px;
+    transition: all 0.3s ease;
+}
+
+#info-joueurs #nomJ:focus {
+    outline: none;
+    border-color: #ffd700;
+    background: white;
+}
+
+/* Boutons */
+#info-joueurs button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 5px 5px 0 0;
+}
+
+#btentree { background: #10b981; color: white; }
+#btentree:hover:not(:disabled) { background: #059669; transform: translateY(-2px); }
+#btentree:disabled { background: #cbd5e0; cursor: not-allowed; color: #718096; }
+
+#btsortie { background: #ef4444; color: white; }
+#btsortie:hover:not(:disabled) { background: #dc2626; transform: translateY(-2px); }
+#btsortie:disabled { background: #cbd5e0; cursor: not-allowed; color: #718096; }
+
+#btNouvellePartie { background: #10b981; color: white; width: calc(100% - 5px); margin-top: 10px; }
+#btNouvellePartie:hover { background: #059669; }
+
+/* --- Zone de chat (Nouveau Style) --- */
+#chat {
+    flex: 1;
+    min-height: 400px;
+    max-height: 500px;
+    padding: 20px;
+    overflow-y: auto;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column; /* Les messages s'empilent */
+    gap: 8px; /* Espace entre les messages */
+    border-bottom: 1px solid #e2e8f0;
+}
+
+#chat::-webkit-scrollbar { width: 6px; }
+#chat::-webkit-scrollbar-track { background: transparent; }
+#chat::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 3px; }
+
+/* Style de base des bulles */
+.messages {
+    max-width: 75%;
+    padding: 10px 14px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    margin: 0; /* Géré par le gap du parent */
+}
+
+/* Messages envoyés (Moi) -> Droite, Violet */
+.messages.sent {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+.messages.sent .message-time { color: rgba(255,255,255,0.7); }
+
+/* Messages reçus (Autres) -> Gauche, Gris */
+.messages.received {
+    align-self: flex-start;
+    background-color: #f1f5f9;
+    color: #1e293b;
+    border-bottom-left-radius: 4px;
+}
+.messages.received .message-time { color: #94a3b8; }
+
+/* Pseudo au dessus du message reçu */
+.pseudo-label {
+    font-size: 11px;
+    color: #64748b;
+    margin-left: 12px;
+    margin-bottom: -4px;
+    align-self: flex-start;
+    font-weight: 600;
+}
+
+/* Messages Système -> Centre */
+.messages.system {
+    align-self: center;
+    background: transparent;
+    box-shadow: none;
+    color: #64748b;
+    font-size: 12px;
+    font-style: italic;
+    text-align: center;
+    max-width: 90%;
+    padding: 5px;
+}
+
+.message-time {
+    font-size: 10px;
+    text-align: right;
+    margin-top: 4px;
+    display: block;
+}
+
+/* Zone de saisie message */
+#lobby p:last-of-type {
+    padding: 15px 20px;
+    background: white;
+    border-top: none;
+    margin: 0;
+    border-radius: 0 0 16px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#messageEntree {
+    flex: 1;
+    padding: 10px 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 20px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s ease;
+}
+
+#messageEntree:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+    #affichageGlobal {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto;
+    }
+    #affichageJeu { grid-column: 1; grid-row: 1; }
+    #scoreJoueurs { grid-column: 1; grid-row: 2; flex-direction: row; }
+    #lobby { grid-column: 1; grid-row: 3; width: 100%; height: 600px; }
+    #infoLivre { grid-column: 1; grid-row: 4; }
+}

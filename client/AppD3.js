@@ -1,82 +1,60 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const socket = io()
+    // --- Initialisation ---
+    const socket = io();
     const svg = d3.select("#affichageJeu")
         .append("svg")
-        .attr("viewBox", "0 0 800 800")  // <-- système interne
-        .style("width", "45%")          // <-- s'adapte à la largeur
-        .style("height", "98vh")         // Toute la hauteur
-        .style("border", "1px solid black"); // Pour voir les bordures du svg
+        .attr("viewBox", "0 0 800 800")
+        .style("width", "45%")
+        .style("height", "90vh")
+        .style("border", "1px solid black");
 
-    // Reception du json
-   let tabLivres = []
-    socket.on('RéceptionJSON' , data => {
-        console.log("JSON récupéré")
-        tabLivres = data.tabLivres
-        console.log(tabLivres)
-    })
-    
+    // --- Variables Globales au jeu ---
+    let tabLivres = [];
+    const groupeBiblio = svg.append("g").attr("id", "groupeBiblio");
+    const groupeTapis = svg.append("g").attr("id", "groupeTapis");
+    const groupeLivres = svg.append("g").attr("id", "groupeLivres");
+    groupeLivres.raise(); // Important pour que les livres soient au-dessus
 
-    const groupeBiblio = svg.append("g").attr("id", "groupeBiblio"); // Crée le groupe bibliothèque dans le svg
-    const groupeTapis = svg.append("g").attr("id", "groupeTapis"); // Crée le groupe tapis dans le svg
-    const groupeLivres = svg.append("g").attr("id", "groupeLivres");     // Crée le groupe livres dans le svg
-    groupeLivres.raise();
-    const Vitesse_Tapis = 70 ; // Vitesse du tapis en pixels par seconde
+    const Vitesse_Tapis = 70;
     const zonesEtagere = [
-    // Bibliothèque 1, étagère du bas
-    { x: 50,  y: 470 },
-    { x: 110, y: 470 },
-    { x: 170, y: 470 },
-    { x: 230, y: 470 },
-    { x: 290, y: 470 },
-
-    // Bibliothèque 1, étagère du milieu
-    { x: 50,  y: 287 },
-    { x: 110, y: 287 },
-    { x: 170, y: 287 },
-    { x: 230, y: 287 },
-    { x: 290, y: 287 },
-
-    // Bibliothèque 1, étagère du haut
-    { x: 50,  y: 104 },
-    { x: 110, y: 104 },
-    { x: 170, y: 104 },
-    { x: 230, y: 104 },
-    { x: 290, y: 104 },
-
-    // Bibliothèque 2, étagère du bas
-    { x: 450, y: 470 },
-    { x: 510, y: 470 },
-    { x: 570, y: 470 },
-    { x: 630, y: 470 },
-    { x: 690, y: 470 },
-    
-    // Bibliothèque 2, étagère du milieu
-    { x: 450, y: 287 },
-    { x: 510, y: 287 },
-    { x: 570, y: 287 },
-    { x: 630, y: 287 },
-    { x: 690, y: 287 },
-
-    // Bibliothèque 2, étagère du haut
-    { x: 450, y: 104 },
-    { x: 510, y: 104 },
-    { x: 570, y: 104 },
-    { x: 630, y: 104 },
-    { x: 690, y: 104 },
-
+        { x: 50,  y: 470 }, { x: 110, y: 470 }, { x: 170, y: 470 }, { x: 230, y: 470 }, { x: 290, y: 470 },
+        { x: 50,  y: 287 }, { x: 110, y: 287 }, { x: 170, y: 287 }, { x: 230, y: 287 }, { x: 290, y: 287 },
+        { x: 50,  y: 104 }, { x: 110, y: 104 }, { x: 170, y: 104 }, { x: 230, y: 104 }, { x: 290, y: 104 },
+        { x: 450, y: 470 }, { x: 510, y: 470 }, { x: 570, y: 470 }, { x: 630, y: 470 }, { x: 690, y: 470 },
+        { x: 450, y: 287 }, { x: 510, y: 287 }, { x: 570, y: 287 }, { x: 630, y: 287 }, { x: 690, y: 287 },
+        { x: 450, y: 104 }, { x: 510, y: 104 }, { x: 570, y: 104 }, { x: 630, y: 104 }, { x: 690, y: 104 },
     ];
-
 
     let rayon = 20;
     let nbCercles = 20;
-    let anim = false; // Si l'animation est en cours ou pas
-    let mode = false; // false = Tapis2, true = Tapis1
+    let anim = false;
+    let mode = false;
     let animIntervalTapis = null;
     let animIntervalLivre = null;
     let livreSelectionne = null;
     let indexLivreActuel = 0;
 
-    // Fonction pour dessiner une bibliotheque
+    // --- Fonctions Utilitaires ---
+
+    // Fonction pour couper le texte (DOIT être définie avant d'être utilisée)
+    function couperEnLignes(texte, nbMots) {
+        if (!texte) return ""; // Sécurité si le texte est vide
+        const mots = texte.trim().split(/\s+/);
+        let lignes = [];
+        while (mots.length > 0) {
+            lignes.push(mots.splice(0, nbMots).join(' '));
+        }
+        return lignes.join('<br>');
+    }
+
+    // Reception du json
+    socket.on('RéceptionJSON' , data => {
+        console.log("JSON récupéré");
+        tabLivres = data.tabLivres;
+        console.log(tabLivres);
+    });
+
+    // --- Dessin Bibliothèque ---
     function dessinerBiblio(x, y) {
         groupeBiblio.append("rect")
             .attr("x", x).attr("y", y).attr("width", 300).attr("height", 550).attr("fill", "white").attr("stroke", "black");
@@ -86,377 +64,291 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr("x1", x).attr("y1", y + 2 * (550 / 3)).attr("x2", x + 300).attr("y2", y + 2 * (550 / 3)).attr("stroke", "black");
     }
 
-
-    // Fonction pour faire les zones de placement des livres dans les biblio
+    // --- Création Zones ---
     function creerZonesBiblio() {
-
-        // On s'assure que toutes les zones sont libres au début
         zonesEtagere.forEach(z => z.occupee = false);
 
         zonesEtagere.forEach((zone, i) => {
-        const z = groupeBiblio.append("rect")
-            .attr("x", zone.x)
-            .attr("y", zone.y-20)
-            .attr("width", 60)
-            .attr("height", 150)
-            .attr("fill", "transparent")
-            .attr("stroke", "none")
-            .attr("class", "zonePlacement");
-        // Clique sur une zone = pose du livre
-        z.on("click", function(event) {
-            if (livreSelectionne == null) return; // Sécurité
-            if (zone.occupee === true) {
-                console.log("Impossible, zone déjà prise !");
-                d3.select("#chat")
-                    .append("h3")
-                    .text("Impossible, zone déjà prise !")
-                    .style("color", "purple")
-                    .style("margin", "5px 0")
-                    .style("text-align", "center");
-
-                return;
-            }
-            livreSelectionne.interrupt(); // Stop l'animation
-
-            // --- CALCUL DE LA NOUVELLE POSITION ---
-            // 1. On récupère la hauteur actuelle du livre sélectionné
-            let hauteurLivre = livreSelectionne.select("rect").attr("height");
-
-            // 2. On calcule le Y aligné : Sol de l'étagère - Hauteur du livre
-            let nouveauY = zone.y - hauteurLivre + 130; // 130 = hauteur de la zone
-
-            // 3. On place le livre avec le nouveau Y
-            livreSelectionne.attr("transform", `translate(${zone.x}, ${nouveauY})`);
-            // --------------------------------------
-
-            livreSelectionne.select("rect")
-                .attr("stroke", "black")
-                .attr("stroke-width", 1);
-            zone.occupee = true;
-            console.log("Livre posé dans zone", i);
-            if (zone.occupee){
-                console.log(livreSelectionne.datum())
-                let info = livreSelectionne.datum()
-                socket.emit('LivrePlacé',
-                    {'index':i,
-                    'JSONLivre':info
-                        })
-            }
-            livreSelectionne = null;
-        });
-        z.on ("mouseover", function(event) {
-            // Sécurité
-            if (!livreSelectionne) return;
-            if (zone.occupee === true) return;
-
-            // 1. On récupère la hauteur actuelle du livre sélectionné (encore)
-            let hauteurLivre = livreSelectionne.select("rect").attr("height");
-            // 2. On calcule le Y aligné : Sol de l'étagère - Hauteur du livre
-            let nouveauY = zone.y - hauteurLivre + 130; // 130 = hauteur de la zone
-            d3.select(this)
-                .attr("stroke", "black")
-                .attr("stroke-width", 1)
-                .attr("fill", "lightgrey")
-                // On change la forme de la zone pour qu'elle ressemble au livre
-                .attr("height", hauteurLivre)
-                .attr("y", nouveauY);
-        });
-        z.on("mouseout", function(event) {
-            d3.select(this)
-                .attr("stroke", "none")
+            const z = groupeBiblio.append("rect")
+                .datum(zone) // <--- INDISPENSABLE pour que 'd' existe plus tard
+                .attr("x", zone.x)
+                .attr("y", zone.y - 20)
+                .attr("width", 60)
+                .attr("height", 150)
                 .attr("fill", "transparent")
-            //On remet la forme d'origine de la zone
-                .attr("height", 150)   // On remet la hauteur totale de l'étagère
-                .attr("y", zone.y-20);    // On remet le Y d'origine (le haut de la zone)
-        })
-    });
+                .attr("stroke", "none")
+                .attr("class", "zonePlacement");
+
+            z.on("click", function(event) {
+                if (livreSelectionne == null) return;
+                if (zone.occupee === true) {
+                    if (typeof ajouterMessageChat === "function") {
+                        ajouterMessageChat("Impossible, zone déjà prise !", "system");
+                    }
+                    return;
+                }
+                livreSelectionne.interrupt();
+
+                let hauteurLivre = livreSelectionne.select("rect").attr("height");
+                let nouveauY = zone.y - hauteurLivre + 130;
+
+                livreSelectionne.attr("transform", `translate(${zone.x}, ${nouveauY})`);
+
+                livreSelectionne.select("rect")
+                    .attr("stroke", "black")
+                    .attr("stroke-width", 1);
+
+                zone.occupee = true;
+
+                // Envoi au serveur
+                if (zone.occupee){
+                    let info = livreSelectionne.datum();
+                    socket.emit('LivrePlacé', {
+                        'index': i,
+                        'JSONLivre': info,
+                        'hauteur': hauteurLivre
+                    });
+                }
+                livreSelectionne = null;
+            });
+
+            z.on("mouseover", function(event) {
+                if (!livreSelectionne) return;
+                if (zone.occupee === true) return;
+
+                let hauteurLivre = livreSelectionne.select("rect").attr("height");
+                let nouveauY = zone.y - hauteurLivre + 130;
+                d3.select(this)
+                    .attr("stroke", "black")
+                    .attr("stroke-width", 1)
+                    .attr("fill", "lightgrey")
+                    .attr("height", hauteurLivre)
+                    .attr("y", nouveauY);
+            });
+
+            z.on("mouseout", function(event) {
+                d3.select(this)
+                    .attr("stroke", "none")
+                    .attr("fill", "transparent")
+                    .attr("height", 150)
+                    .attr("y", zone.y - 20);
+            })
+        });
     }
 
-
-    // Fonctions pour créer les cercles
-    // Tapis1 = vertical + horizontal, Tapis2 = diagonales
+    // --- Tapis ---
     function creerCercleTapis1(x, y, r) {
-        groupeTapis.append("circle")
-            .attr("cx", x).attr("cy", y).attr("r", r).attr("fill", "lightgrey").attr("stroke", "black");
-        groupeTapis.append("line")
-            .attr("x1", x).attr("y1", y - r).attr("x2", x).attr("y2", y + r).attr("stroke", "black"); // Ligne verticale
-        groupeTapis.append("line")
-            .attr("x1", x - r).attr("y1", y).attr("x2", x + r).attr("y2", y).attr("stroke", "black"); // Ligne horizontale
+        groupeTapis.append("circle").attr("cx", x).attr("cy", y).attr("r", r).attr("fill", "lightgrey").attr("stroke", "black");
+        groupeTapis.append("line").attr("x1", x).attr("y1", y - r).attr("x2", x).attr("y2", y + r).attr("stroke", "black");
+        groupeTapis.append("line").attr("x1", x - r).attr("y1", y).attr("x2", x + r).attr("y2", y).attr("stroke", "black");
     }
 
     function creerCercleTapis2(x, y, r) {
-        let d = r / Math.sqrt(2); // Pour avoir les lignes diagonales il faut cette valeur
-        groupeTapis.append("circle")
-            .attr("cx", x).attr("cy", y).attr("r", r).attr("fill", "lightgrey").attr("stroke", "black");
-        groupeTapis.append("line")
-            .attr("x1", x - d).attr("y1", y - d).attr("x2", x + d).attr("y2", y + d).attr("stroke", "black");
-        groupeTapis.append("line")
-            .attr("x1", x - d).attr("y1", y + d).attr("x2", x + d).attr("y2", y - d).attr("stroke", "black");
+        let d = r / Math.sqrt(2);
+        groupeTapis.append("circle").attr("cx", x).attr("cy", y).attr("r", r).attr("fill", "lightgrey").attr("stroke", "black");
+        groupeTapis.append("line").attr("x1", x - d).attr("y1", y - d).attr("x2", x + d).attr("y2", y + d).attr("stroke", "black");
+        groupeTapis.append("line").attr("x1", x - d).attr("y1", y + d).attr("x2", x + d).attr("y2", y - d).attr("stroke", "black");
     }
 
-    // Cree le sol du tapis roulant avec un motif animé
     function creerSolTapis() {
-    // Vérification : si le tapis existe déjà, on ne le recrée pas
-    if (!d3.select("#beltTexture").empty()) return;
+        if (!d3.select("#beltTexture").empty()) return;
+        const beltHeight = 10;
+        const beltYPosition = 760 - beltHeight;
+        const patternWidth = 20;
 
-    const beltHeight = 10;
-    const beltYPosition = 760 - beltHeight;
-    const patternWidth = 20;
+        let defs = svg.select("defs");
+        if (defs.empty()) defs = svg.append("defs");
 
-    // 1. Défs et Motif
-    let defs = svg.select("defs");
-    if (defs.empty()) defs = svg.append("defs");
+        const beltPattern = defs.append("pattern")
+            .attr("id", "beltTexture")
+            .attr("width", patternWidth).attr("height", beltHeight).attr("patternUnits", "userSpaceOnUse");
+        beltPattern.append("rect").attr("width", patternWidth).attr("height", beltHeight).attr("fill", "#333");
+        beltPattern.append("line").attr("x1", patternWidth / 2).attr("y1", 0).attr("x2", patternWidth / 2).attr("y2", beltHeight).attr("stroke", "#555").attr("stroke-width", 2);
 
-    const beltPattern = defs.append("pattern")
-        .attr("id", "beltTexture")
-        .attr("width", patternWidth)
-        .attr("height", beltHeight)
-        .attr("patternUnits", "userSpaceOnUse");
-
-    // Fond du tapis (gris foncé)
-    beltPattern.append("rect")
-        .attr("width", patternWidth).attr("height", beltHeight)
-        .attr("fill", "#333");
-
-    // Rayure pour l'effet de vitesse
-    beltPattern.append("line")
-        .attr("x1", patternWidth / 2).attr("y1", 0)
-        .attr("x2", patternWidth / 2).attr("y2", beltHeight)
-        .attr("stroke", "#555")
-        .attr("stroke-width", 2);
-
-    // 2. Le Rectangle qui utilise le motif
-    svg.append("rect")
-        .attr("x", 0)
-        .attr("y", beltYPosition)
-        .attr("width", 800)
-        .attr("height", beltHeight)
-        .attr("fill", "url(#beltTexture)")
-        .attr("stroke", "none");
-}
-
-
+        svg.append("rect").attr("x", -20).attr("y", beltYPosition).attr("width", 840).attr("height", beltHeight).attr("fill", "url(#beltTexture)").attr("stroke", "none");
+    }
 
     function gererAnimationTapis(actif) {
-    // On récupère le motif via son ID
-    const beltPattern = d3.select("#beltTexture");
-    
-    // Sécurité : si le motif n'existe pas encore, on sort
-    if (beltPattern.empty()) return;
+        const beltPattern = d3.select("#beltTexture");
+        if (beltPattern.empty()) return;
+        const patternWidth = 20;
+        let duree = patternWidth / Vitesse_Tapis;
+        let animation = beltPattern.select("animateTransform");
 
-    const patternWidth = 20; 
-    // On suppose que Vitesse_Tapis est une variable globale définie plus haut
-    let duree = patternWidth / Vitesse_Tapis; 
-
-    let animation = beltPattern.select("animateTransform");
-
-    if (actif) {
-        // Si on veut activer et que l'animation n'existe pas, on l'ajoute
-        if (animation.empty()) {
-            beltPattern.append("animateTransform")
-                .attr("attributeName", "patternTransform")
-                .attr("type", "translate")
-                .attr("from", "0 0")
-                .attr("to", `${patternWidth} 0`)
-                .attr("dur", duree + "s")
-                .attr("repeatCount", "indefinite");
-        }
-    } else {
-        // Si on veut désactiver et qu'elle existe, on la supprime
-        if (!animation.empty()) {
-            animation.remove();
+        if (actif) {
+            if (animation.empty()) {
+                beltPattern.append("animateTransform")
+                    .attr("attributeName", "patternTransform")
+                    .attr("type", "translate")
+                    .attr("from", "0 0")
+                    .attr("to", `${patternWidth} 0`)
+                    .attr("dur", duree + "s")
+                    .attr("repeatCount", "indefinite");
+            }
+        } else {
+            if (!animation.empty()) animation.remove();
         }
     }
-}
 
-    
-
-
-// Affiche un tapis complet selon le mode
-    
-    
     function dessinerTapis(mode) {
-        groupeTapis.selectAll("*").remove(); // Si un tapis est deja affiché le retire (supprime tout ce qu'il y a dans le groupe tapis)
-
-        for (let i = 0; i < nbCercles; i++) {
+        groupeTapis.selectAll("*").remove();
+        for (let i = 0; i < nbCercles + 1; i++) {
             let x = 20 + i * rayon * 2;
             let y = 780;
-
-            if (mode == true)
-                creerCercleTapis1(x, y, rayon);
-            else
-                creerCercleTapis2(x, y, rayon);
+            if (mode == true) creerCercleTapis1(x - 20, y, rayon);
+            else creerCercleTapis2(x - 20, y, rayon);
         }
         creerSolTapis();
-        
     }
 
-    // Tapis de base avant de lanceer l'animation
-    dessinerTapis(mode); // mode = false de base donc c'est un Tapis2
-    
-
-    // Fonction pour dessiner un livre
+    // --- Livres ---
     function dessinerLivre(x, y, largeur = 60) {
         const livre = groupeLivres.append("g")
-            .attr("class","livre")
+            .attr("class", "livre")
             .attr("transform", "translate(" + x + "," + y + ")");
 
-        // Rectangle du livre
         livre.append("rect")
             .attr("width", largeur)
             .attr("height", 0)
             .attr("stroke", "black")
             .attr("rx", 4);
 
-        // Rendre le livre clickable
-        livre.on("click", function (event) {
+        livre.on("click", function(event) {
             event.stopPropagation();
-
-            // Si un autre livre était déjà sélectionné, remettre son contour normal
             if (livreSelectionne) {
-                livreSelectionne.select("rect")
-                    .attr("stroke", "black")
-                    .attr("stroke-width", 1);
+                livreSelectionne.select("rect").attr("stroke", "black").attr("stroke-width", 1);
             }
-
             livreSelectionne = livre;
+            livre.select("rect").attr("stroke", "gold").attr("stroke-width", 5);
 
-            // Mets un contour sur le livre selectionné pour le reconnaitre
-            livre.select("rect")
-                .attr("stroke", "gold")
-                .attr("stroke-width", 5);
-
-            // Récupère les infos attachées au livre
             const infoLivre = livre.datum();
+            if (infoLivre.littérature === undefined) { infoLivre.littérature = "Inconnue"; }
 
-            // Affiche toutes les infos dans le div
-            if (infoLivre.littérature === undefined) {infoLivre.littérature = "Inconnue";}
-
-// 3. On injecte la variable 'titreFormate' (et pas infoLivre.titre)
+            // Utilisation de couperEnLignes qui est maintenant accessible !
             d3.select("#infoLivre").html(`
-                    <div style="display: flex; flex-direction: column; align-items: center; font-size:15px;gap: 2px; margin-bottom: 4px;">
-                        <span style="font-weight: bold; font-size: 1.1em;">Titre</span>
-                        
-                        <span style="text-align: center; line-height: 1.1;">
-                            ${couperEnLignes(infoLivre.titre, 3)}
-                        </span>
-                        </div>
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; font-size:14px; margin-bottom: 4px;">
-                        <span style="font-weight: bold; font-size: 1.1em;">Auteur</span>
-                        <span style="text-align: center; line-height: 1.1;">
-                            ${couperEnLignes(infoLivre.auteur, 2)}
-                        </span>
-                        </div>
-                    <div style="line-height: 1.4;">
-                        <b>Genre :</b> ${infoLivre.genre} <br>
-                        <b>Littérature :</b> ${infoLivre.littérature} <br>
-                        <b>Format :</b> ${infoLivre.format}
-                    </div>
-                `);
+                <div style="display: flex; flex-direction: column; align-items: center; font-size:15px;gap: 2px; margin-bottom: 4px;">
+                    <span style="font-weight: bold; font-size: 1.1em;">Titre</span>
+                    <span style="text-align: center; line-height: 1.1;">${couperEnLignes(infoLivre.titre, 3)}</span>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; font-size:14px; margin-bottom: 4px;">
+                    <span style="font-weight: bold; font-size: 1.1em;">Auteur</span>
+                    <span style="text-align: center; line-height: 1.1;">${couperEnLignes(infoLivre.auteur, 2)}</span>
+                </div>
+                <div style="line-height: 1.4;">
+                    <b>Genre :</b> ${infoLivre.genre} <br>
+                    <b>Littérature :</b> ${infoLivre.littérature} <br>
+                    <b>Format :</b> ${infoLivre.format}
+                </div>
+            `);
             console.log("Livre sélectionné");
         })
-
         return livre;
     }
 
-
-    // Fonction pour animer un livre sur le tapis roulant
     function animerLivre(livre, xCible, yCible, duree = 10000) {
-        const distance = xCible - 10; // Distance à parcourir (800 - position de départ 10)
-        duree = (distance / Vitesse_Tapis) * 1000; // Calcul de la durée en ms en fonction de la vitesse du tapis
+        const distance = xCible - 10;
+        duree = (distance / Vitesse_Tapis) * 1000;
         livre.transition()
             .duration(duree)
-            .ease(d3.easeLinear) // Vitesse constante du début à la fin
+            .ease(d3.easeLinear)
             .attr("transform", "translate(" + xCible + "," + yCible + ")")
-            .on("end", () => livre.remove()); // Supprmier le livre quand l'animation est finie
+            .on("end", () => livre.remove());
     }
 
     function spawnLivre(livreObj) {
         let livreCrée = dessinerLivre(10, 620);
         let ysol = 750;
         socket.emit('demandeLivre', livreObj);
-        //let idLivre = "Livre"+(indexLivreActuel+1);
         socket.once('envoiLivre', (data) => {
             livreCrée.select("rect")
                 .attr("fill", data.livreC)
-                .attr("height", data.livreF)
-               // .attr("id",idLivre)
-            livreCrée.attr("transform", `translate(10, ${ysol - data.livreF})`)
+                .attr("height", data.livreF);
+            livreCrée.attr("transform", `translate(10, ${ysol - data.livreF})`);
             livreCrée.datum(livreObj);
-            /*d3.select(`#${idLivre}`).html(`<b class="infoJSONLivreTitre">${livreObj.titre}</b>
-                            <br> <p class="infoJSONLivreAuteur">${livreObj.nom}</p>`);*/
-            animerLivre(livreCrée,800,ysol - data.livreF);
+            animerLivre(livreCrée, 800, ysol - data.livreF);
         })
     }
 
-    svg.append("line")
-        .attr("x1", 0).attr("y1", 600).attr("x2", 800).attr("y2", 600).attr("stroke", "black");
+    // --- Gestion Animation ---
+    svg.append("line").attr("x1", 0).attr("y1", 600).attr("x2", 800).attr("y2", 600).attr("stroke", "black");
 
-    
-     // Fonction qui démarre l'animation
-    
-    
-    
-        function startAnimation() {
-        if (anim == true)
-            return; // Si animation deja en cours on relance pas
+    function startAnimation() {
+        if (anim == true) return;
         anim = true;
-        gererAnimationTapis(anim)
+        gererAnimationTapis(anim);
+
         animIntervalTapis = setInterval(() => {
             mode = !mode;
             dessinerTapis(mode);
         }, 150);
-        animIntervalLivre =
-        // Fonction qui spawn le prochain livre toutes les 10 secondes
-        setInterval(function () {
-        // On prend le livre courant du tableau
-        const livreObj = tabLivres[indexLivreActuel];
 
-        // Spawn le livre sur le tapis roulant
-        spawnLivre(livreObj);
+        animIntervalLivre = setInterval(function() {
+            if (tabLivres.length > 0) {
+                const livreObj = tabLivres[indexLivreActuel];
+                spawnLivre(livreObj);
 
-        // Passe au livre suivant (boucle si on arrive à la fin)
-        indexLivreActuel += 1;
-
-    }, 10000); // 10000 ms = 10 secondes
+                // --- CORRECTION CRASH INDEX ---
+                // On boucle pour ne pas dépasser la taille du tableau
+                indexLivreActuel = (indexLivreActuel + 1) % tabLivres.length;
+            }
+        }, 10000);
     }
 
-    // Fonction qui stop l'animation
     function stopAnimation() {
         anim = false;
-        gererAnimationTapis(anim)
+        gererAnimationTapis(anim);
         clearInterval(animIntervalTapis);
         clearInterval(animIntervalLivre);
     }
-    
+
+    // --- Lancement Initial ---
+    dessinerTapis(mode);
     dessinerBiblio(50, 50);
     dessinerBiblio(450, 50);
     creerZonesBiblio();
-    let testDansBiblio = dessinerLivre(50, 470);
-    let testDansBiblio2 = dessinerLivre(110, 470);
-    let testDansBiblio3 = dessinerLivre(170, 470);
-    let testDansBiblio4 = dessinerLivre(230, 470);
-    let testDansBiblio5 = dessinerLivre(290, 470);
 
-    //let test = spawnLivre(choisirLivre(0))
-
-    socket.on('StartAnimation',() => {
-        startAnimation()
-        console.log("L'animation démarre")
+    socket.on('StartAnimation', () => {
+        startAnimation();
+        console.log("L'animation démarre");
     })
-    socket.on('StopAnimation',() => {
-        stopAnimation()
-        console.log("l'animation s'arrête")
+    socket.on('StopAnimation', () => {
+        stopAnimation();
+        console.log("l'animation s'arrête");
     })
 
-    // 1. La fonction de sécurité pour couper proprement (à mettre en haut ou avant le d3)
-    function couperEnLignes(texte, nbMots) {
-        const mots = texte.trim().split(/\s+/); // Coupe sur n'importe quel espace
-        let lignes = [];
-        while (mots.length > 0) {
-            lignes.push(mots.splice(0, nbMots).join(' ')); // Prend des paquets de 'nbMots'
-        }
-        return lignes.join('<br>'); // Rejoint avec le saut HTML
-    }
+    // --- C'EST ICI QU'ON MET LE CODE ADVERSE (A l'intérieur de DOMContentLoaded) ---
+    socket.on('LivreAdverse', (data) => {
+        // 1. On sélectionne TOUTES les zones de placement
+        d3.selectAll(".zonePlacement")
+            // 2. On garde UNIQUEMENT celle qui a le bon index
+            .filter((d, i) => i === data.index)
+            .each(function(d) {
+                // MAINTENANT 'd' EXISTE car on est dans la portée où .datum() a été appliqué
 
-});
+                // A. On marque la zone comme occupée
+                d.occupee = true;
+
+                // Calcul de la position
+                let hauteurLivre = data.taille || 60;
+                let zoneX = parseFloat(d3.select(this).attr("x"));
+                let zoneY = parseFloat(d3.select(this).attr("y"));
+                let nouveauY = zoneY + 130 + 20 - hauteurLivre;
+
+                // B. On dessine le livre adverse
+                // MAINTENANT 'groupeLivres' EXISTE car on est dans la même portée
+                groupeLivres.append("g")
+                    .attr("transform", `translate(${zoneX}, ${nouveauY})`)
+                    .html(`
+                        <rect width="60" height="${data.taille}" fill="${data.couleur || 'brown'}" stroke="black" rx="4"></rect>
+                        <foreignObject x="0" y="0" width="60" height="${hauteurLivre}">
+                            <div style="width:100%; height:100%; display:flex; justify-content:center; 
+                            align-items:center; text-align:center; color: white; font-size:12px; font-weight: bold; 
+                            border-color: white ; border-size ; 2px solid; pointer-events:none;">
+                                ${couperEnLignes(data.titre || "", 2)}
+                            </div>
+                        </foreignObject>
+                    `);
+            });
+    });
+
+}); // <--- FIN DE DOMContentLoaded
