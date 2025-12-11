@@ -58,6 +58,7 @@ io.on('connection', (socket) => {
         console.log("Entrée dans la partie de "+nomJoueur);
         if (joueurs.length < nbJoueurs)
             if (!joueurs.includes(nomJoueur)) {
+                socket.nomJoueur = nomJoueur; // Sauvegarde du nom du joueur dans la socket au cas ou le serveur plante pour mieux le retrouver
                 joueurs.push(nomJoueur);
                 console.dir(joueurs);
                 socket.emit('messageServeur', 'Vous avez rejoint la partie');
@@ -95,6 +96,7 @@ io.on('connection', (socket) => {
                     'nomsJoueurs':nomsJoueurs});
             socket.emit('messageServeur', 'Vous avez quitté la partie');
             socket.broadcast.emit('messageServeur', `${nomJoueur} a quitté la partie`);
+            socket.broadcast.emit('StopAnimation')
         }
         else socket.emit('messageServeur', 'Joueur inconnu');
     });
@@ -107,6 +109,38 @@ io.on('connection', (socket) => {
             console.log("Message à diffuser :", message)
             socket.emit('message', message);
             socket.broadcast.emit('messageAutre',message)
+
+        }
+    });
+
+    // Gère la déconnexion brutale (Fermeture onglet, perte internet, F5)
+    socket.on('disconnect', () => {
+        console.log("Un client s'est déconnecté");
+
+        // Si ce client était un joueur identifié (qui était entré dans la partie)
+        if (socket.nomJoueur) {
+            let nom = socket.nomJoueur;
+            console.log("C'était le joueur : " + nom);
+
+            // On le retire du tableau
+            let index = joueurs.indexOf(nom);
+            if (index != -1) {
+                joueurs.splice(index, 1);
+
+                // On prépare la liste mise à jour pour les survivants
+                let nomsJoueurs = "";
+                for (let n of joueurs) nomsJoueurs += n + " ";
+
+                // On prévient tout le monde que ce joueur est parti
+                socket.broadcast.emit('sortieAutreJoueur', {
+                    'nomJoueur': nom,
+                    'numJoueur': index,
+                    'nomsJoueurs': nomsJoueurs
+                });
+
+                socket.broadcast.emit('messageServeur', `${nom} a été déconnecté.`);
+                socket.broadcast.emit('StopAnimation')
+            }
         }
     });
     socket.on('CommencerPartie', () => {
@@ -118,9 +152,6 @@ io.on('connection', (socket) => {
         console.log("On va faire démarrer l'animation")
     })
 
-    socket.on('stop' ,() => {
-        io.emit('StopAnimation')
-    })
 
     // reception du livre quand il est placé dans la bibliothèque
     socket.on('LivrePlacé' , data => {

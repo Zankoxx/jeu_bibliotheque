@@ -7,6 +7,8 @@
     <script src="/socket.io/socket.io.js"></script>
     <link rel="stylesheet" href="styles.css">
     <script>
+
+        
         const socket = io();
         let tabJoueurs = [];
         var numJoueur = -1;
@@ -186,10 +188,18 @@
         // Message des autres
         socket.on('messageAutre', message => {
             // Format serveur: "L'autre : SonTexte"
-            const parts = message.split(' : ');
-            const pseudo = parts[0];
-            const contenu = parts.slice(1).join(' : ');
+            const messageASplit = message.split(' : ');
+            const pseudo = messageASplit[0];
+            const contenu = messageASplit.slice(1).join(' : ');
             ajouterMessageChat(contenu, 'received', pseudo);
+
+
+            window.addEventListener("beforeunload", function (event) {
+                // Tu peux tenter d'envoyer un dernier message au serveur
+                // Note : C'est très rapide, le serveur ne le reçoit pas toujours à 100%
+                socket.emit('sortie', nomJ.value);
+            });
+        
         });
         socket.on('majScoreA', score => {
             // On vérifie SI on a un nom, sinon on met "Joueur A" par défaut
@@ -200,6 +210,31 @@
         socket.on('majScoreB', score => {
             scoreA_actuel = score;
             mettreAJourNomsScores();
+        });
+
+
+        // Quand le serveur s'arrête (ou redémarre)
+        socket.on("disconnect", (reason) => {
+            console.log("Connexion au serveur perdue !");
+            ajouterMessageChat("🔴 Connexion perdue...", "system");
+
+            // Tu peux griser l'interface ou bloquer les boutons ici
+        });
+
+        // Quand le serveur revient (Socket.io se reconnecte tout seul)
+        socket.on("connect", () => {
+            console.log("Connexion retrouvée !");
+
+            // ⚠️ ATTENTION IMPORTANTE :
+            // Si le serveur a redémarré, IL A PERDU TOUTE SA MÉMOIRE (variables).
+            // Tes tableaux 'joueurs' et 'scores' côté serveur sont vides (remis à zéro).
+            // Mais ton client, lui, croit qu'il est encore dans la partie.
+
+            if (numJoueur !== -1) {
+                ajouterMessageChat("🟢 Serveur redémarré. Veuillez vous reconnecter.", "system");
+                // Force le rechargement de la page pour remettre tout propre
+                setTimeout(() => location.reload(), 2000);
+            }
         });
     </script>
 </head>
