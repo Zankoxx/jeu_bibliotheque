@@ -327,6 +327,7 @@ function comptagePoints() {
             if (tousLitt) { score += 15; }
         }
     }
-    console.log("➡️ Score total actuel :", score);
+    console.log("-> Score total actuel :", score);
     return score;
+
 }
