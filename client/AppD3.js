@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Initialisation ---
-    const socket = io();
+    const socket = window.socket
     const svg = d3.select("#affichageJeu")
         .append("svg")
         .attr("viewBox", "0 0 800 800")
@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Variables Globales au jeu ---
     let tabLivres = [];
+    let estMonTour = false;
     const groupeDecor = svg.append("g").attr("id", "groupeDecor");
     const groupeBiblio = svg.append("g").attr("id", "groupeBiblio");
     const groupeTapis = svg.append("g").attr("id", "groupeTapis");
@@ -20,12 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const Vitesse_Tapis = 70;
     const zonesEtagere = [
-        { x: 50,  y: 458 }, { x: 110, y: 458 }, { x: 170, y: 458 }, { x: 230, y: 458 }, { x: 290, y: 458 },
-        { x: 50,  y: 277 }, { x: 110, y: 277 }, { x: 170, y: 277 }, { x: 230, y: 277 }, { x: 290, y: 277 },
-        { x: 50,  y: 84 }, { x: 110, y: 84 }, { x: 170, y: 84 }, { x: 230, y: 84 }, { x: 290, y: 84 },
-        { x: 450, y: 460 }, { x: 510, y: 460 }, { x: 570, y: 460 }, { x: 630, y: 460 }, { x: 690, y: 460 },
-        { x: 450, y: 277 }, { x: 510, y: 277 }, { x: 570, y: 277 }, { x: 630, y: 277 }, { x: 690, y: 277 },
-        { x: 450, y: 84 }, { x: 510, y: 84 }, { x: 570, y: 84 }, { x: 630, y: 84 }, { x: 690, y: 84 },
+        { x: 50,  y: 458 }, { x: 110, y: 458 }, { x: 170, y: 458 }, { x: 230, y: 458 }, { x: 290, y: 458 }, //  Etagère Bas-Gauche
+        { x: 50,  y: 277 }, { x: 110, y: 277 }, { x: 170, y: 277 }, { x: 230, y: 277 }, { x: 290, y: 277 }, // Etagère Milieu-Gauche
+        { x: 50,  y: 84 }, { x: 110, y: 84 }, { x: 170, y: 84 }, { x: 230, y: 84 }, { x: 290, y: 84 }, // Etagère Haut-Gauche
+        { x: 450, y: 460 }, { x: 510, y: 460 }, { x: 570, y: 460 }, { x: 630, y: 460 }, { x: 690, y: 460 }, // Etagère Bas-Droite
+        { x: 450, y: 277 }, { x: 510, y: 277 }, { x: 570, y: 277 }, { x: 630, y: 277 }, { x: 690, y: 277 }, // Etagère Milieu-Droite
+        { x: 450, y: 84 }, { x: 510, y: 84 }, { x: 570, y: 84 }, { x: 630, y: 84 }, { x: 690, y: 84 }, // Etagère Haut-Droite
     ];
 
     let rayon = 20;
@@ -54,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('RéceptionJSON' , data => {
         console.log("JSON récupéré");
         tabLivres = data.tabLivres;
+        indexLivreActuel = 0; // Réinitialisation de l'index
         console.log(tabLivres);
     });
 
@@ -212,6 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             z.on("click", function(event) {
                 if (livreSelectionne == null) return;
+                if (!estMonTour) return; // Sécurité supplémentaire
                 if (zone.occupee === true) {
                     if (typeof ajouterMessageChat === "function") {
                         ajouterMessageChat("Impossible, zone déjà prise !", "system");
@@ -347,6 +350,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         livre.on("click", function(event) {
             event.stopPropagation();
+            if (!estMonTour) {
+                alert("Attendez votre tour !");
+                return;
+            }
             if (livreSelectionne) {
                 livreSelectionne.select("rect").attr("stroke", "black").attr("stroke-width", 1);
             }
@@ -478,6 +485,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- C'EST ICI QU'ON MET LE CODE ADVERSE (A l'intérieur de DOMContentLoaded) ---
     socket.on('LivreAdverse', (data) => {
+        // On cherche dans le groupeLivres un livre qui a le même titre que celui placé
+        groupeLivres.selectAll(".livre")
+            .filter(function(d) { return d && d.titre === data.titre; }) // On filtre par titre
+            .remove(); // On le supprime du DOM
         // 1. On sélectionne TOUTES les zones de placement
         d3.selectAll(".zonePlacement")
             // 2. On garde UNIQUEMENT celle qui a le bon index
@@ -513,5 +524,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     `);
             });
     });
+    // Dans AppD3.js
 
-}); // <--- FIN DE DOMContentLoaded
+    socket.on('ChangementTour', (indexTour) => {
+        // numJoueur est défini dans index.html
+        if (indexTour === numJoueur) {
+            estMonTour = true;
+            console.log("C'est à moi de jouer !");
+            // Optionnel : Changer visuellement (bordure verte, texte...)
+            d3.select("#infoLivre").style("border", "5px solid green");
+        } else {
+            estMonTour = false;
+            console.log("Attente de l'adversaire...");
+            d3.select("#infoLivre").style("border", "5px solid red");
+
+            // Désélectionner le livre en cours si on en avait un
+            livreSelectionne = null;
+            d3.selectAll(".livre rect").attr("stroke", "black").attr("stroke-width", 1);
+        }
+    });
+
+});
+// fin de DOMContentLoaded
