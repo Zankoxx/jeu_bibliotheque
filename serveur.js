@@ -20,6 +20,7 @@ let nbLivresEtagere = 5
 let listeEtageres = null ;
 let PointParLivre = 100 ;
 const NbEtagereT = nbBiblio * NbEtageresParBiblio
+let tourJoueurActuel = 0; // 0 pour Joueur A, 1 pour Joueur B
 
 let scoreA = 0;
 let scoreB = 0;
@@ -150,6 +151,8 @@ io.on('connection', (socket) => {
         console.log("affichagetableauvide")
         console.log(listeEtageres);
         console.log("On va faire démarrer l'animation")
+        tourJoueurActuel = 0; // Le premier joueur de la liste commence
+        io.emit('ChangementTour', tourJoueurActuel); // On prévient tout le monde
     })
     socket.on('ArrêterPartie', () => {
         io.emit('StopAnimation')
@@ -159,6 +162,16 @@ io.on('connection', (socket) => {
     // reception du livre quand il est placé dans la bibliothèque
     socket.on('LivrePlacé' , data => {
         console.log(data.JSONLivre)
+
+        // Retrouver l'index du joueur qui envoie la requête
+        let indexJoueur = joueurs.indexOf(socket.nomJoueur);
+
+        // VERIFICATION : Est-ce bien son tour ?
+        if (indexJoueur !== tourJoueurActuel) {
+            socket.emit('messageServeur', "Ce n'est pas votre tour !");
+            return; // On arrête tout, on ne place pas le livre
+        }
+
 
         if (data.index < 5) {
             console.log(listeEtageres)
@@ -195,6 +208,10 @@ io.on('connection', (socket) => {
                 'titre':data.JSONLivre.titre,
                 'auteur':data.JSONLivre.auteur,
             });
+
+        // Une fois l'action finie, on change de tour
+        tourJoueurActuel = (tourJoueurActuel + 1) % 2; // Alterne entre 0 et 1
+        io.emit('ChangementTour', tourJoueurActuel); // Informe les clients du changement
 
     })
 
@@ -254,79 +271,149 @@ function NouvellePartie (){
 
 }
 
-function EstOrdreAlphabetiqueTitre(etagere) {
-    let titres = etagere.map(livre => livre.titre);
-    for (let i = 0; i < titres.length - 1; i++) {
-        if (titres[i] > titres[i + 1]) {
-            return false;
-        }
-    }
-    return true;
+
+
+
+
+
+// CALCUL DES POINTS (avec tous les caractéristiques indiqués)
+
+
+
+// Fonction utilitaire pour le bonus de "Streak Parfaite" (Etagère complète avec le même critère)
+function bonusStreakParfaite(streak) {
+    // On utilise ta variable globale nbLivresEtagere
+    if (streak === nbLivresEtagere) { return 2; }
+    else { return 0; }
 }
 
-function comptagePoints() {
-    let score = 0;
-    function estComplete(etagere) {
-        return etagere.every(livre => livre !== null && livre !== 0);
-    }
+// Fonction qui calcule les points d'UNE SEULE étagère (adaptée de ton camarade)
+function calculerPointsEtagere(etagereBrute) {
 
-    for (let e = 0; e < NbEtagereT; e++) {
-        const etagere = listeEtageres[e];
-        const criteres = ["auteur", "genre", "littérature"];
-        criteres.forEach(critere => {
-            let chaineLongueur = 1;
-            for (let i = 1; i < nbLivresEtagere; i++) {
-                const prev = etagere[i - 1];
-                const curr = etagere[i];
-                if (!prev || !curr) {
-                    chaineLongueur = 1;
-                    continue;
-                }
-                if (prev[critere] === curr[critere]) {
-                    chaineLongueur++;
-                    score += chaineLongueur;
-                } else {
-                    chaineLongueur = 1;
-                }
-            }
-        });
+    // 1. On nettoie l'étagère pour ne garder que les vrais livres (pas les null/0)
+    // Cela permet de comparer des livres qui sont côte à côte
+    const livres = etagereBrute.filter(livre => livre !== null && livre !== 0);
 
-        let chainAlpha = 1;
-        for (let i = 1; i < nbLivresEtagere; i++) {
-            const prev = etagere[i - 1];
-            const curr = etagere[i];
-            if (!prev || !curr) {
-                chainAlpha = 1;
-                continue;
-            }
-            if (prev.auteur.localeCompare(curr.auteur) <= 0) {
-                chainAlpha++;
-                score += chainAlpha * 2;
+    let pointsEtagere = livres.length; // 1 point par livre posé de base
+
+    // Si l'étagère est vide, 0 points
+    if (livres.length === 0) return 0;
+
+    // Si l'étagère est pleine (comparé à ta variable globale), +1 point
+    if (livres.length === nbLivresEtagere) { pointsEtagere += 1; }
+
+    // Initialisation des compteurs de "Streak" (Suite)
+    let streak_TITRE = 1;      let same_TITRE = 0;
+    let streak_AUTEUR = 1;     let same_AUTEUR = 0;
+    let streak_GENRE = 1;
+    let streak_LITT = 1;
+    let streak_FORMAT = 1;
+
+    // Boucle de comparaison (on commence au 2ème livre)
+    for (let i = 1; i < livres.length; i++) {
+        let curr = livres[i];      // Livre actuel
+        let prev = livres[i - 1];  // Livre précédent
+
+        // --- A. TITRE (Ordre Alphabétique) ---
+        // On utilise localeCompare pour bien gérer les accents, c'est plus propre que ">="
+        if (curr.titre.localeCompare(prev.titre) >= 0) {
+            streak_TITRE++;
+            if (curr.titre === prev.titre) {
+                same_TITRE++; // Titre identique
             } else {
-                chainAlpha = 1;
+                pointsEtagere += same_TITRE; // On valide les points des identiques précédents
+                same_TITRE = 0;
             }
+        } else if (streak_TITRE > 1) {
+            // La suite est brisée, on encaisse les points accumulés
+            pointsEtagere += streak_TITRE + same_TITRE;
+            streak_TITRE = 1; same_TITRE = 0;
         }
 
-        if (estComplete(etagere)) {
-            let tousGenre = true;
-            let tousAuteur = true;
-            let tousLitt = true;
-
-            const genreRef = etagere[0].genre;
-            const auteurRef = etagere[0].auteur;
-            const littRef = etagere[0].littérature;
-
-            for (let i = 1; i < nbLivresEtagere; i++) {
-                if (etagere[i].genre !== genreRef) tousGenre = false;
-                if (etagere[i].auteur !== auteurRef) tousAuteur = false;
-                if (etagere[i].littérature !== littRef) tousLitt = false;
+        // --- B. AUTEUR (Ordre Alphabétique) ---
+        // Note: Ton camarade utilisait "nom", toi "auteur"
+        if (curr.auteur.localeCompare(prev.auteur) >= 0) {
+            streak_AUTEUR++;
+            if (curr.auteur === prev.auteur) {
+                same_AUTEUR++;
+            } else {
+                pointsEtagere += same_AUTEUR;
+                same_AUTEUR = 0;
             }
+        } else if (streak_AUTEUR > 1) {
+            pointsEtagere += streak_AUTEUR + same_AUTEUR;
+            streak_AUTEUR = 1; same_AUTEUR = 0;
+        }
 
-            if (tousGenre) { score += 20; }
-            if (tousAuteur) { score += 30; }
-            if (tousLitt) { score += 15; }
+        // --- C. GENRE (Identique) ---
+        if (curr.genre === prev.genre) {
+            streak_GENRE++;
+        } else if (streak_GENRE > 1) {
+            pointsEtagere += streak_GENRE;
+            streak_GENRE = 1;
+        }
+
+        // --- D. LITTÉRATURE (Identique) ---
+        // Ton camarade avait une formule spéciale (*1.2)
+        if (curr.littérature === prev.littérature) {
+            streak_LITT++;
+        } else if (streak_LITT > 1) {
+            pointsEtagere += Math.floor(streak_LITT * 1.2);
+            streak_LITT = 1;
+        }
+
+        // --- E. FORMAT (Identique) ---
+        // On vérifie que la propriété existe bien dans tes objets livres
+        if (curr.format && prev.format && curr.format === prev.format) {
+            streak_FORMAT++;
+        } else if (streak_FORMAT > 1) {
+            pointsEtagere += streak_FORMAT;
+            streak_FORMAT = 1;
         }
     }
-    console.log("➡️ Score total actuel :", score);
-    return score;
+
+    // --- FIN DE BOUCLE : On ajoute les points des streaks qui étaient encore actives ---
+
+    if (streak_TITRE > 1) {
+        pointsEtagere += streak_TITRE + same_TITRE + bonusStreakParfaite(streak_TITRE);
+    }
+
+    if (streak_AUTEUR > 1) {
+        pointsEtagere += streak_AUTEUR + same_AUTEUR + bonusStreakParfaite(streak_AUTEUR);
+    }
+
+    if (streak_GENRE > 1) {
+        // Logique spéciale de ton camarade pour le genre complet (+50% des points si full)
+        let bonusGenre = (bonusStreakParfaite(streak_GENRE) > 0) ? (livres.length * 0.5) : 0;
+        pointsEtagere += streak_GENRE + bonusGenre;
+    }
+
+    if (streak_LITT > 1) {
+        pointsEtagere += Math.floor(streak_LITT * 1.2) + bonusStreakParfaite(streak_LITT);
+    }
+
+    if (streak_FORMAT > 1) {
+        pointsEtagere += streak_FORMAT + bonusStreakParfaite(streak_FORMAT);
+    }
+
+    return Math.floor(pointsEtagere);
+}
+
+// TA FONCTION PRINCIPALE (Mise à jour)
+function comptagePoints() {
+    let scoreTotal = 0;
+
+    // On boucle sur toutes tes étagères (0 à NbEtagereT)
+    for (let e = 0; e < NbEtagereT; e++) {
+        // On récupère ton tableau de livres pour cette étagère
+        const etagereCourante = listeEtageres[e];
+
+        // On calcule les points via la nouvelle logique
+        let pointsEtagere = calculerPointsEtagere(etagereCourante);
+
+        scoreTotal += pointsEtagere;
+    }
+
+    console.log("➡️ Score total calculé (Logique Camarade) :", scoreTotal);
+    return scoreTotal;
 }
