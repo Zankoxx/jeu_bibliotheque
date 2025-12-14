@@ -176,7 +176,7 @@ body {
 #btNouvellePartie { background: #10b981; color: white; width: calc(100% - 5px); margin-top: 10px; }
 #btNouvellePartie:hover { background: #059669; }
 
-/* --- Zone de chat (Nouveau Style) --- */
+/* Zone de chat */
 #chat {
     flex: 1;
     min-height: 400px;
@@ -207,7 +207,7 @@ body {
     margin: 0; /* Géré par le gap du parent */
 }
 
-/* Messages envoyés (Moi) -> Droite, Violet */
+/* Messages envoyés */
 .messages.sent {
     align-self: flex-end;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -216,7 +216,7 @@ body {
 }
 .messages.sent .message-time { color: rgba(255,255,255,0.7); }
 
-/* Messages reçus (Autres) -> Gauche, Gris */
+/* Messages reçus */
 .messages.received {
     align-self: flex-start;
     background-color: #f1f5f9;
@@ -235,7 +235,7 @@ body {
     font-weight: 600;
 }
 
-/* Messages Système -> Centre */
+/* Messages Système */
 .messages.system {
     align-self: center;
     background: transparent;
