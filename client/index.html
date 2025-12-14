@@ -212,6 +212,17 @@
             mettreAJourNomsScores();
         });
 
+        socket.on('FinDePartie', (resultats) => {
+            // 1. Arrêter les interactions
+            alert(`🏁 PARTIE TERMINÉE !\n\nVainqueur : ${resultats.vainqueur}\n\nScore A : ${resultats.scoreA}\nScore B : ${resultats.scoreB}`);
+
+            // 2. Afficher dans le chat
+            ajouterMessageChat(`🏆 VICTOIRE DE ${resultats.vainqueur} !`, "system");
+
+            // 3. Faire réapparaître le bouton pour relancer
+            btNouvellePartie.hidden = false;
+        });
+
 
         // Quand le serveur s'arrête (ou redémarre)
         socket.on("disconnect", (reason) => {
