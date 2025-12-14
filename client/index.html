@@ -27,11 +27,11 @@
             mettreAJourNomsScores();
         });
         function mettreAJourNomsScores() {
-            // 1. Définir les noms par défaut
+            // Définir les noms par défaut
             let nomA = "Joueur A";
             let nomB = "Joueur B (En attente)";
 
-            // 2. Si on a des joueurs dans le tableau, on remplace
+            // Si on a des joueurs dans le tableau, on remplace
             if (tabJoueurs && tabJoueurs.length > 0) {
                 // Sécurité : on vérifie que le nom n'est pas vide
                 if (tabJoueurs[0] && tabJoueurs[0].trim() !== "") {
@@ -45,7 +45,7 @@
                 }
             }
 
-            // 3. On met à jour l'affichage en gardant le score actuel
+            // On met à jour l'affichage en gardant le score actuel
             document.getElementById('scoreJoueurA').textContent = `Score ${nomA} : ${scoreA_actuel}`;
             document.getElementById('scoreJoueurB').textContent = `Score ${nomB} : ${scoreB_actuel}`;
         }
@@ -123,7 +123,7 @@
             console.log("Bouton Nouvelle Partie visible")
         })
 
-        // --- Fonctions Chat Mises à jour ---
+        // Fonctions du chat
 
         function getHeureActuelle() {
             const now = new Date();
@@ -133,13 +133,9 @@
         }
 
         function afficherMessageErreur(message) {
-            // On peut l'afficher en tant que message système rouge dans le chat
-            // ou garder un div séparé. Ici je l'ajoute au chat en rouge via CSS inline ou une classe error
-            // Pour rester simple, on utilise le system message mais on pourrait ajouter du style.
             ajouterMessageChat("⚠️ " + message, 'system');
         }
 
-        // Nouvelle fonction de chat compatible avec styles.css
         function ajouterMessageChat(message, type = 'system', pseudo = null) {
             const chat = document.getElementById('chat');
 
@@ -171,8 +167,7 @@
 
         socket.on('messageServeur', message => {
             const errs = ['déjà enregistré', 'déjà atteint', 'entrer dans la partie', 'Joueur inconnu'];
-            // Simple filtre pour savoir si c'est une erreur critique ou une info
-            // Mais visuellement, on peut tout mettre en 'system'
+            // Simple filtre pour savoir si c'est une erreur critique ou une info mais visuellement, on peut tout mettre en 'system'
             ajouterMessageChat(message, 'system');
         });
 
@@ -195,14 +190,12 @@
 
 
             window.addEventListener("beforeunload", function (event) {
-                // Tu peux tenter d'envoyer un dernier message au serveur
-                // Note : C'est très rapide, le serveur ne le reçoit pas toujours à 100%
                 socket.emit('sortie', nomJ.value);
             });
         
         });
         socket.on('majScoreA', score => {
-            // On vérifie SI on a un nom, sinon on met "Joueur A" par défaut
+            // On vérifie si on a un nom, sinon on met "Joueur A" par défaut
             scoreB_actuel = score;
             mettreAJourNomsScores();
         });
@@ -213,13 +206,13 @@
         });
 
         socket.on('FinDePartie', (resultats) => {
-            // 1. Arrêter les interactions
-            alert(`🏁 PARTIE TERMINÉE !\n\nVainqueur : ${resultats.vainqueur}\n\nScore A : ${resultats.scoreA}\nScore B : ${resultats.scoreB}`);
+            // Arrêter les interactions
+            alert(`PARTIE TERMINÉE !\n\nVainqueur : ${resultats.vainqueur}\n\nScore A : ${resultats.scoreA}\nScore B : ${resultats.scoreB}`);
 
-            // 2. Afficher dans le chat
-            ajouterMessageChat(`🏆 VICTOIRE DE ${resultats.vainqueur} !`, "system");
+            // Afficher dans le chat
+            ajouterMessageChat(`VICTOIRE DE ${resultats.vainqueur} !`, "system");
 
-            // 3. Faire réapparaître le bouton pour relancer
+            // Faire réapparaître le bouton pour relancer
             btNouvellePartie.hidden = false;
         });
 
@@ -227,9 +220,8 @@
         // Quand le serveur s'arrête (ou redémarre)
         socket.on("disconnect", (reason) => {
             console.log("Connexion au serveur perdue !");
-            ajouterMessageChat("🔴 Connexion perdue...", "system");
+            ajouterMessageChat("Connexion perdue...", "system");
             socket.emit('ArrêterPartie')
-            // Tu peux griser l'interface ou bloquer les boutons ici
         });
 
         // Quand le serveur revient (Socket.io se reconnecte tout seul)
@@ -237,7 +229,7 @@
             console.log("Connexion retrouvée !");
 
             if (numJoueur !== -1) {
-                ajouterMessageChat("🟢 Serveur redémarré. Veuillez vous reconnecter.", "system");
+                ajouterMessageChat("Serveur redémarré. Veuillez vous reconnecter.", "system");
                 // Force le rechargement de la page pour remettre tout propre
                 setTimeout(() => location.reload(), 2000);
             }
