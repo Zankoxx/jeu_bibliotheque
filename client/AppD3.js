@@ -4,12 +4,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const svg = d3.select("#affichageJeu")
         .append("svg")
         .attr("viewBox", "0 0 800 800")
-        .style("width", "45%")
+        .style("width", "100%")
         .style("height", "90vh")
         .style("border", "1px solid black");
 
     // --- Variables Globales au jeu ---
     let tabLivres = [];
+    const groupeDecor = svg.append("g").attr("id", "groupeDecor");
     const groupeBiblio = svg.append("g").attr("id", "groupeBiblio");
     const groupeTapis = svg.append("g").attr("id", "groupeTapis");
     const groupeLivres = svg.append("g").attr("id", "groupeLivres");
@@ -17,12 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const Vitesse_Tapis = 70;
     const zonesEtagere = [
-        { x: 50,  y: 470 }, { x: 110, y: 470 }, { x: 170, y: 470 }, { x: 230, y: 470 }, { x: 290, y: 470 },
-        { x: 50,  y: 287 }, { x: 110, y: 287 }, { x: 170, y: 287 }, { x: 230, y: 287 }, { x: 290, y: 287 },
-        { x: 50,  y: 104 }, { x: 110, y: 104 }, { x: 170, y: 104 }, { x: 230, y: 104 }, { x: 290, y: 104 },
-        { x: 450, y: 470 }, { x: 510, y: 470 }, { x: 570, y: 470 }, { x: 630, y: 470 }, { x: 690, y: 470 },
-        { x: 450, y: 287 }, { x: 510, y: 287 }, { x: 570, y: 287 }, { x: 630, y: 287 }, { x: 690, y: 287 },
-        { x: 450, y: 104 }, { x: 510, y: 104 }, { x: 570, y: 104 }, { x: 630, y: 104 }, { x: 690, y: 104 },
+        { x: 50,  y: 458 }, { x: 110, y: 458 }, { x: 170, y: 458 }, { x: 230, y: 458 }, { x: 290, y: 458 },
+        { x: 50,  y: 277 }, { x: 110, y: 277 }, { x: 170, y: 277 }, { x: 230, y: 277 }, { x: 290, y: 277 },
+        { x: 50,  y: 84 }, { x: 110, y: 84 }, { x: 170, y: 84 }, { x: 230, y: 84 }, { x: 290, y: 84 },
+        { x: 450, y: 460 }, { x: 510, y: 460 }, { x: 570, y: 460 }, { x: 630, y: 460 }, { x: 690, y: 460 },
+        { x: 450, y: 277 }, { x: 510, y: 277 }, { x: 570, y: 277 }, { x: 630, y: 277 }, { x: 690, y: 277 },
+        { x: 450, y: 84 }, { x: 510, y: 84 }, { x: 570, y: 84 }, { x: 630, y: 84 }, { x: 690, y: 84 },
     ];
 
     let rayon = 20;
@@ -56,12 +57,139 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Dessin Bibliothèque ---
     function dessinerBiblio(x, y) {
+        // Dimensions exactes de ta zone de jeu (NE PAS TOUCHER)
+        const largeurInterne = 300;
+        const hauteurInterne = 550;
+        const tier = hauteurInterne / 3;
+
+        // Dimensions de la déco (Autour)
+        const epaisseurCadre = 20; // Epaisseur des montants sur les côtés
+        const hauteurCorniche = 30; // Le chapeau en haut
+        const epaisseurEtagere = 12; // Epaisseur visuelle des planches
+
+        // Couleurs
+        const boisFonce = "#6D4C41";  // Fond
+        const boisCadre = "#8D6E63";  // Montants
+        const boisClair = "#A1887F";  // Planches
+
+        // 1. LE FOND (L'arrière du meuble)
+        // On le met exactement dans la zone pour que ce soit sombre derrière les livres
         groupeBiblio.append("rect")
-            .attr("x", x).attr("y", y).attr("width", 300).attr("height", 550).attr("fill", "white").attr("stroke", "black");
-        groupeBiblio.append("line")
-            .attr("x1", x).attr("y1", y + (550 / 3)).attr("x2", x + 300).attr("y2", y + (550 / 3)).attr("stroke", "black");
-        groupeBiblio.append("line")
-            .attr("x1", x).attr("y1", y + 2 * (550 / 3)).attr("x2", x + 300).attr("y2", y + 2 * (550 / 3)).attr("stroke", "black");
+            .attr("x", x)
+            .attr("y", y)
+            .attr("width", largeurInterne)
+            .attr("height", hauteurInterne)
+            .attr("fill", "#4E342E") // Très foncé
+            .attr("stroke", "none");
+
+        // 2. LES MONTANTS EXTÉRIEURS (Le cadre)
+        // Montant Gauche (Dessiné à x - 20)
+        groupeBiblio.append("rect")
+            .attr("x", x - epaisseurCadre)
+            .attr("y", y)
+            .attr("width", epaisseurCadre)
+            .attr("height", hauteurInterne + epaisseurCadre) // Descend un peu plus bas pour faire pied
+            .attr("fill", boisCadre)
+            .attr("stroke", "black");
+
+        // Montant Droit (Dessiné à x + 300)
+        groupeBiblio.append("rect")
+            .attr("x", x + largeurInterne)
+            .attr("y", y)
+            .attr("width", epaisseurCadre)
+            .attr("height", hauteurInterne + epaisseurCadre)
+            .attr("fill", boisCadre)
+            .attr("stroke", "black");
+
+        // Corniche (Le toit, au dessus de y)
+        groupeBiblio.append("rect")
+            .attr("x", x - epaisseurCadre - 10) // Déborde un peu sur les côtés
+            .attr("y", y - hauteurCorniche)
+            .attr("width", largeurInterne + (epaisseurCadre * 2) + 20)
+            .attr("height", hauteurCorniche)
+            .attr("fill", boisCadre)
+            .attr("stroke", "black")
+            .attr("rx", 3); // Coins un peu arrondis
+
+        // 3. LES PLANCHES (Visuel seulement)
+        // On dessine un rectangle juste EN DESSOUS de la ligne où se pose le livre
+        // Pour donner l'impression que le livre est posé dessus.
+
+        // Planche du haut (1er tiers)
+        groupeBiblio.append("rect")
+            .attr("x", x)
+            .attr("y", y + tier -10)
+            .attr("width", largeurInterne)
+            .attr("height", epaisseurEtagere)
+            .attr("fill", boisClair)
+            .attr("stroke", "black");
+
+        // Planche du milieu (2ème tiers)
+        groupeBiblio.append("rect")
+            .attr("x", x)
+            .attr("y", y + (tier * 2))
+            .attr("width", largeurInterne)
+            .attr("height", epaisseurEtagere)
+            .attr("fill", boisClair)
+            .attr("stroke", "black");
+
+        // Planche du bas (Le sol de la biblio)
+        groupeBiblio.append("rect")
+            .attr("x", x)
+            .attr("y", y + hauteurInterne - epaisseurEtagere +10) // Juste à la fin
+            .attr("width", largeurInterne)
+            .attr("height", epaisseurEtagere)
+            .attr("fill", boisClair)
+            .attr("stroke", "black");
+    }
+    function creerDecorFond() {
+        const hauteurSol = 600; // Le niveau où le mur s'arrête (derrière le tapis)
+
+        // --- A. DEFINITION DU MOTIF PAPIER PEINT (RAYURES) ---
+        let defs = svg.select("defs");
+        if (defs.empty()) defs = svg.append("defs");
+
+        const motifMur = defs.append("pattern")
+            .attr("id", "motifPapierPeint")
+            .attr("width", 40) // Largeur du motif qui se répète
+            .attr("height", 40)
+            .attr("patternUnits", "userSpaceOnUse");
+
+        // Fond du papier peint (Beige crème)
+        motifMur.append("rect")
+            .attr("width", 40).attr("height", 40)
+            .attr("fill", "#f4a968"); // OldLace
+
+        // Rayure verticale (Beige un peu plus foncé)
+        motifMur.append("rect")
+            .attr("width", 20).attr("height", 40)
+            .attr("fill", "#FAEBD7"); // AntiqueWhite
+
+        // --- B. LE MUR ---
+        groupeDecor.append("rect")
+            .attr("x", -20)
+            .attr("y", 0)
+            .attr("width", 800+20)
+            .attr("height", hauteurSol)
+            .attr("fill", "url(#motifPapierPeint)"); // On applique le motif
+
+        // --- C. LE SOL (PARQUET) ---
+        groupeDecor.append("rect")
+            .attr("x", 0-20)
+            .attr("y", hauteurSol)
+            .attr("width", 800+40)
+            .attr("height", 800 - hauteurSol) // Jusqu'en bas
+            .attr("fill", "#8D6E63"); // Marron bois
+
+        // --- D. LA PLINTHE (Séparation Mur/Sol) ---
+        groupeDecor.append("rect")
+            .attr("x", -20)
+            .attr("y", hauteurSol - 15) // Juste au dessus du sol
+            .attr("width", 800+40)
+            .attr("height", 15)
+            .attr("fill", "#FFF8E1") // Blanc cassé
+            .attr("stroke", "#D7CCC8"); // Petit contour gris léger
+
     }
 
     // --- Création Zones ---
@@ -97,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 livreSelectionne.select("rect")
                     .attr("stroke", "black")
                     .attr("stroke-width", 1);
-
+                livreSelectionne.style("pointer-events", "none"); // Désactive les interactions
                 zone.occupee = true;
 
                 // Envoi au serveur
@@ -256,21 +384,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function spawnLivre(livreObj) {
+        // 1. On crée le groupe et le rectangle de base via ta fonction
         let livreCrée = dessinerLivre(10, 620);
         let ysol = 750;
+
         socket.emit('demandeLivre', livreObj);
+
         socket.once('envoiLivre', (data) => {
+            // Récupération des données du serveur
+            let hauteur = data.livreF;
+            let couleur = data.livreC;
+
+            // 2. On met à jour le rectangle existant (créé par dessinerLivre)
             livreCrée.select("rect")
-                .attr("fill", data.livreC)
-                .attr("height", data.livreF);
-            livreCrée.attr("transform", `translate(10, ${ysol - data.livreF})`);
-            livreCrée.datum(livreObj);
-            animerLivre(livreCrée, 800, ysol - data.livreF);
+                .attr("fill", couleur)
+                .attr("height", hauteur);
+
+            // 3. On AJOUTE le texte par dessus (ForeignObject)
+            livreCrée.append("foreignObject")
+                .attr("x", 0)
+                .attr("y", 0)
+                .attr("width", 60)
+                .attr("height", hauteur)
+                .style("pointer-events", "none") // IMPORTANT : Permet de cliquer sur le livre à travers le texte
+                .html(`
+                    <div style="
+                        width:100%; height:100%;
+                        display:flex; justify-content:center; align-items:center;
+                        text-align:center; color: white; font-size:9px; font-weight: bold;
+                        padding: 2px; box-sizing: border-box;
+                        text-shadow: 1px 1px 1px black;">
+                        ${couperEnLignes(livreObj.titre || "Sans titre", 2)}
+                    </div>
+                `);
+
+            // 4. Positionnement et Animation
+            livreCrée.attr("transform", `translate(10, ${ysol - hauteur})`);
+            livreCrée.datum(livreObj); // On attache les données pour le clic
+            animerLivre(livreCrée, 800, ysol - hauteur);
         })
     }
 
     // --- Gestion Animation ---
-    svg.append("line").attr("x1", 0).attr("y1", 600).attr("x2", 800).attr("y2", 600).attr("stroke", "black");
 
     function startAnimation() {
         if (anim == true) return;
@@ -302,9 +457,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Lancement Initial ---
+    creerDecorFond()
     dessinerTapis(mode);
-    dessinerBiblio(50, 50);
-    dessinerBiblio(450, 50);
+    dessinerBiblio(50, 40);
+    dessinerBiblio(450, 40);
     creerZonesBiblio();
 
     socket.on('StartAnimation', () => {
@@ -340,11 +496,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     .attr("transform", `translate(${zoneX}, ${nouveauY})`)
                     .html(`
                         <rect width="60" height="${data.taille}" fill="${data.couleur || 'brown'}" stroke="black" rx="4"></rect>
-                        <foreignObject x="0" y="0" width="60" height="${hauteurLivre}">
-                            <div style="width:100%; height:100%; display:flex; justify-content:center; 
-                            align-items:center; text-align:center; color: white; font-size:12px; font-weight: bold; 
-                            border-color: white ; border-size ; 2px solid; pointer-events:none;">
-                                ${couperEnLignes(data.titre || "", 2)}
+                        <foreignObject x="0" y="0" width="60" height="${hauteurLivre}" pointer-events="none">
+                            <div style="
+                                    width:100%; height:100%;
+                                    display:flex; justify-content:center; align-items:center;
+                                    text-align:center; color: white; font-size:9px; font-weight: bold;
+                                    padding: 2px; box-sizing: border-box;
+                                    text-shadow: 1px 1px 1px black;">
+                                    ${couperEnLignes(data.titre || "Sans titre", 2)}
                             </div>
                         </foreignObject>
                     `);
