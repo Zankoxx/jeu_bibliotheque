@@ -49,11 +49,17 @@ Le calcul des points est effectué côté serveur à chaque coup joué pour évi
 
 ### Le Lobby
 *Écran de connexion permettant de choisir son pseudo et de discuter via le chat en attendant l'adversaire.*
-> *(Insérer ici une capture d'écran du lobby)*
+<img width="910" height="1294" alt="image" src="https://github.com/user-attachments/assets/655fd26f-d995-404f-b845-b847120a6de1" />
+
 
 ### La Phase de Jeu
 *Vue principale avec le tapis roulant en bas et les bibliothèques des joueurs.*
-> *(Insérer ici une capture d'écran du jeu en cours)*
+<img width="1335" height="1276" alt="image" src="https://github.com/user-attachments/assets/919a01f5-9702-4532-8f06-5a3c76cfbd25" />
+
+### Vue générale
+<img width="2229" height="1294" alt="image" src="https://github.com/user-attachments/assets/da3ff54f-928f-4a20-a8eb-2a2152654153" />
+
+
 
 
 ##  Structure des Fichiers
