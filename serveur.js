@@ -192,6 +192,7 @@ io.on('connection', (socket) => {
         else if (data.index < 30){
             listeEtageres[5][data.index-25]= data.JSONLivre;
             console.log(listeEtageres[5])}
+
         if (data.index < 15) {
             scoreA = comptagePoints()
             io.emit('majScoreA',scoreA)
@@ -209,9 +210,30 @@ io.on('connection', (socket) => {
                 'auteur':data.JSONLivre.auteur,
             });
 
-        // Une fois l'action finie, on change de tour
-        tourJoueurActuel = (tourJoueurActuel + 1) % 2; // Alterne entre 0 et 1
-        io.emit('ChangementTour', tourJoueurActuel); // Informe les clients du changement
+        if (estFinDePartie()) {
+            console.log("Fin de la partie détectée !");
+
+            // On détermine le gagnant
+            let vainqueur = "";
+            if (scoreA > scoreB) vainqueur = joueurs[0]; // Nom du joueur A
+            else if (scoreB > scoreA) vainqueur = joueurs[1]; // Nom du joueur B
+            else vainqueur = "Égalité";
+
+            // On envoie un événement spécial à tout le monde
+            io.emit('FinDePartie', {
+                scoreA: scoreA,
+                scoreB: scoreB,
+                vainqueur: vainqueur
+            });
+
+            // On arrête l'animation du tapis pour faire propre
+            io.emit('StopAnimation');
+        }
+        else {
+            // Si ce n'est pas fini, on change de tour comme d'habitude
+            tourJoueurActuel = (tourJoueurActuel + 1) % 2;
+            io.emit('ChangementTour', tourJoueurActuel);
+        }
 
     })
 
@@ -416,4 +438,19 @@ function comptagePoints() {
 
     console.log("➡️ Score total calculé (Logique Camarade) :", scoreTotal);
     return scoreTotal;
+}
+
+// Vérifie si toutes les cases de toutes les étagères sont remplies
+function estFinDePartie() {
+    let compteurLivres = 0;
+    const totalEmplacements = NbEtagereT * nbLivresEtagere; // 6 * 5 = 30
+
+    // On parcourt toutes les étagères
+    for (let etagere of listeEtageres) {
+        // On compte les éléments qui ne sont pas 0
+        const livresPoses = etagere.filter(l => l !== 0).length;
+        compteurLivres += livresPoses;
+    }
+
+    return compteurLivres === totalEmplacements;
 }
