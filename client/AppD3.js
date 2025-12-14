@@ -43,11 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
         { x: 290, y: 84 },
 
         // Bibliothèque 2, étagère du bas
-        { x: 450, y: 460 }, 
-        { x: 510, y: 460 }, 
-        { x: 570, y: 460 }, 
-        { x: 630, y: 460 }, 
-        { x: 690, y: 460 },
+        { x: 450, y: 458 },
+        { x: 510, y: 458 },
+        { x: 570, y: 458 },
+        { x: 630, y: 458 },
+        { x: 690, y: 458 },
 
         // Bibliothèque 2, étagère du milieu
         { x: 450, y: 277 }, 
@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
         groupeDecor.append("rect")
             .attr("x", -20)
             .attr("y", 0)
-            .attr("width", 800+20)
+            .attr("width", 800+40)
             .attr("height", hauteurSol)
             .attr("fill", "url(#motifPapierPeint)"); // On applique le motif
 
