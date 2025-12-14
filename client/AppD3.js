@@ -13,8 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const groupeDecor = svg.append("g").attr("id", "groupeDecor");
     const groupeBiblio = svg.append("g").attr("id", "groupeBiblio");
     const groupeTapis = svg.append("g").attr("id", "groupeTapis");
+    const groupeRoues = svg.append("g").attr("id", "groupeRoues");
     const groupeLivres = svg.append("g").attr("id", "groupeLivres");
     groupeLivres.raise(); // Important pour que les livres soient au-dessus
+    groupeDecor.lower()
 
     const Vitesse_Tapis = 70;
     const zonesEtagere = [
@@ -179,7 +181,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr("y", hauteurSol)
             .attr("width", 800+40)
             .attr("height", 800 - hauteurSol) // Jusqu'en bas
-            .attr("fill", "#8D6E63"); // Marron bois
+            .attr("fill", "#8D6E63")
+            .lower(); // Marron bois
 
         // --- D. LA PLINTHE (Séparation Mur/Sol) ---
         groupeDecor.append("rect")
@@ -266,16 +269,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Tapis ---
     function creerCercleTapis1(x, y, r) {
-        groupeTapis.append("circle").attr("cx", x).attr("cy", y).attr("r", r).attr("fill", "lightgrey").attr("stroke", "black");
-        groupeTapis.append("line").attr("x1", x).attr("y1", y - r).attr("x2", x).attr("y2", y + r).attr("stroke", "black");
-        groupeTapis.append("line").attr("x1", x - r).attr("y1", y).attr("x2", x + r).attr("y2", y).attr("stroke", "black");
+        groupeRoues.append("circle").attr("cx", x).attr("cy", y).attr("r", r).attr("fill", "lightgrey").attr("stroke", "black");
+        groupeRoues.append("line").attr("x1", x).attr("y1", y - r).attr("x2", x).attr("y2", y + r).attr("stroke", "black");
+        groupeRoues.append("line").attr("x1", x - r).attr("y1", y).attr("x2", x + r).attr("y2", y).attr("stroke", "black");
     }
 
     function creerCercleTapis2(x, y, r) {
         let d = r / Math.sqrt(2);
-        groupeTapis.append("circle").attr("cx", x).attr("cy", y).attr("r", r).attr("fill", "lightgrey").attr("stroke", "black");
-        groupeTapis.append("line").attr("x1", x - d).attr("y1", y - d).attr("x2", x + d).attr("y2", y + d).attr("stroke", "black");
-        groupeTapis.append("line").attr("x1", x - d).attr("y1", y + d).attr("x2", x + d).attr("y2", y - d).attr("stroke", "black");
+        groupeRoues.append("circle").attr("cx", x).attr("cy", y).attr("r", r).attr("fill", "lightgrey").attr("stroke", "black");
+        groupeRoues.append("line").attr("x1", x - d).attr("y1", y - d).attr("x2", x + d).attr("y2", y + d).attr("stroke", "black");
+        groupeRoues.append("line").attr("x1", x - d).attr("y1", y + d).attr("x2", x + d).attr("y2", y - d).attr("stroke", "black");
     }
 
     function creerSolTapis() {
@@ -294,6 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
         beltPattern.append("line").attr("x1", patternWidth / 2).attr("y1", 0).attr("x2", patternWidth / 2).attr("y2", beltHeight).attr("stroke", "#555").attr("stroke-width", 2);
 
         svg.append("rect").attr("x", -20).attr("y", beltYPosition).attr("width", 840).attr("height", beltHeight).attr("fill", "url(#beltTexture)").attr("stroke", "none");
+        groupeTapis.append("rect").attr("x",-20).attr("y",beltHeight + beltYPosition -1).attr("width",840).attr("height",rayon*2+1).attr("fill","#333").attr("stroke","none")
     }
 
     function gererAnimationTapis(actif) {
@@ -319,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function dessinerTapis(mode) {
-        groupeTapis.selectAll("*").remove();
+        groupeRoues.selectAll("*").remove();
         for (let i = 0; i < nbCercles + 1; i++) {
             let x = 20 + i * rayon * 2;
             let y = 780;
