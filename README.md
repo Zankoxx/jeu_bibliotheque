@@ -4,7 +4,7 @@ Ce projet est une application web multijoueur en temps réel où deux joueurs s'
 
 ##  Participants
 
-* **NEJJARI Anir** 
+* **NEJJARI Anir, numéro étudiant: 22406943** 
 * **MARCO Jean, numéro étudiant: 22303943** 
 
 
