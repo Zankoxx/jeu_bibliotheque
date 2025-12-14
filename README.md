@@ -54,7 +54,8 @@ Le calcul des points est effectué côté serveur à chaque coup joué pour évi
 
 ### La Phase de Jeu
 *Vue principale avec le tapis roulant en bas et les bibliothèques des joueurs.*
-<img width="1335" height="1276" alt="image" src="https://github.com/user-attachments/assets/919a01f5-9702-4532-8f06-5a3c76cfbd25" />
+<img width="1325" height="1278" alt="image" src="https://github.com/user-attachments/assets/a111628f-2254-4212-9d7e-265d70dcf3c5" />
+
 
 ### Vue générale
 <img width="2229" height="1294" alt="image" src="https://github.com/user-attachments/assets/da3ff54f-928f-4a20-a8eb-2a2152654153" />
