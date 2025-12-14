@@ -17,9 +17,9 @@ Ce projet est une application web multijoueur en temps réel où deux joueurs s'
     * **Système de Tour par Tour** : Le serveur impose le tour de jeu (A puis B) et bloque les actions illégales.
     * **Synchronisation d'État** : Les livres posés par l'adversaire apparaissent en temps réel sur l'écran du joueur local.
     * **Chat intégré** : 
-    -Discussion en direct avec notifications systèmes (connexions, déconnexions, erreurs).
-    -Messagerie moderne avec ton message à droite et message du joueur en face à gauche
-    -Heure en temps réel
+        * Discussion en direct avec notifications systèmes (connexions, déconnexions, erreurs).
+        * Messagerie moderne avec ton message à droite et message du joueur en face à gauche
+        * Heure en temps réel
     * **Gestion des déconnexions** : Nettoyage automatique des joueurs si un onglet est fermé.
 
 ### 2. Interface & Animations (D3.js)
