@@ -1,14 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Initialisation ---
+    // Initialisation
     const socket = window.socket
     const svg = d3.select("#affichageJeu")
         .append("svg")
         .attr("viewBox", "0 0 800 800")
         .style("width", "100%")
         .style("height", "90vh")
-        .style("border", "1px solid black");
+        .style("border", "1px solid black"); // Pour voir les bordures du svg
 
-    // --- Variables Globales au jeu ---
+    // Variables globales du jeu
     let tabLivres = [];
     let estMonTour = false;
     const groupeDecor = svg.append("g").attr("id", "groupeDecor");
@@ -19,28 +19,61 @@ document.addEventListener('DOMContentLoaded', () => {
     groupeLivres.raise(); // Important pour que les livres soient au-dessus
     groupeDecor.lower()
 
-    const Vitesse_Tapis = 70;
+    const Vitesse_Tapis = 70; // Vitesse du tapis en pixels par seconde
     const zonesEtagere = [
-        { x: 50,  y: 458 }, { x: 110, y: 458 }, { x: 170, y: 458 }, { x: 230, y: 458 }, { x: 290, y: 458 }, //  Etagère Bas-Gauche
-        { x: 50,  y: 277 }, { x: 110, y: 277 }, { x: 170, y: 277 }, { x: 230, y: 277 }, { x: 290, y: 277 }, // Etagère Milieu-Gauche
-        { x: 50,  y: 84 }, { x: 110, y: 84 }, { x: 170, y: 84 }, { x: 230, y: 84 }, { x: 290, y: 84 }, // Etagère Haut-Gauche
-        { x: 450, y: 460 }, { x: 510, y: 460 }, { x: 570, y: 460 }, { x: 630, y: 460 }, { x: 690, y: 460 }, // Etagère Bas-Droite
-        { x: 450, y: 277 }, { x: 510, y: 277 }, { x: 570, y: 277 }, { x: 630, y: 277 }, { x: 690, y: 277 }, // Etagère Milieu-Droite
-        { x: 450, y: 84 }, { x: 510, y: 84 }, { x: 570, y: 84 }, { x: 630, y: 84 }, { x: 690, y: 84 }, // Etagère Haut-Droite
+        // Bibliothèque 1, étagère du bas
+        { x: 50,  y: 458 },
+        { x: 110, y: 458 }, 
+        { x: 170, y: 458 }, 
+        { x: 230, y: 458 }, 
+        { x: 290, y: 458 },
+
+        // Bibliothèque 1, étagère du milieu
+        { x: 50,  y: 277 }, 
+        { x: 110, y: 277 }, 
+        { x: 170, y: 277 }, 
+        { x: 230, y: 277 }, 
+        { x: 290, y: 277 },
+
+        // Bibliothèque 1, étagère du haut
+        { x: 50,  y: 84 }, 
+        { x: 110, y: 84 }, 
+        { x: 170, y: 84 }, 
+        { x: 230, y: 84 }, 
+        { x: 290, y: 84 },
+
+        // Bibliothèque 2, étagère du bas
+        { x: 450, y: 460 }, 
+        { x: 510, y: 460 }, 
+        { x: 570, y: 460 }, 
+        { x: 630, y: 460 }, 
+        { x: 690, y: 460 },
+
+        // Bibliothèque 2, étagère du milieu
+        { x: 450, y: 277 }, 
+        { x: 510, y: 277 }, 
+        { x: 570, y: 277 }, 
+        { x: 630, y: 277 }, 
+        { x: 690, y: 277 },
+
+        // Bibliothèque 2, étagère du haut
+        { x: 450, y: 84 }, 
+        { x: 510, y: 84 }, 
+        { x: 570, y: 84 }, 
+        { x: 630, y: 84 }, 
+        { x: 690, y: 84 },
     ];
 
-    let rayon = 20;
+    let rayon = 20; // Rayon d'un cercle du tapis
     let nbCercles = 20;
-    let anim = false;
-    let mode = false;
+    let anim = false; // Si l'animation est en cours ou pas
+    let mode = false; // false = Tapis2, true = Tapis1
     let animIntervalTapis = null;
     let animIntervalLivre = null;
     let livreSelectionne = null;
     let indexLivreActuel = 0;
 
-    // --- Fonctions Utilitaires ---
-
-    // Fonction pour couper le texte (DOIT être définie avant d'être utilisée)
+    // Fonction pour couper le texte
     function couperEnLignes(texte, nbMots) {
         if (!texte) return ""; // Sécurité si le texte est vide
         const mots = texte.trim().split(/\s+/);
@@ -59,14 +92,14 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(tabLivres);
     });
 
-    // --- Dessin Bibliothèque ---
+    // Fonction pour dessiner une bibliotheque
     function dessinerBiblio(x, y) {
-        // Dimensions exactes de ta zone de jeu (NE PAS TOUCHER)
+        // Dimensions exactes de la zone de jeu
         const largeurInterne = 300;
         const hauteurInterne = 550;
         const tier = hauteurInterne / 3;
 
-        // Dimensions de la déco (Autour)
+        // Dimensions de la déco (autour)
         const epaisseurCadre = 20; // Epaisseur des montants sur les côtés
         const hauteurCorniche = 30; // Le chapeau en haut
         const epaisseurEtagere = 12; // Epaisseur visuelle des planches
@@ -76,8 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const boisCadre = "#8D6E63";  // Montants
         const boisClair = "#A1887F";  // Planches
 
-        // 1. LE FOND (L'arrière du meuble)
-        // On le met exactement dans la zone pour que ce soit sombre derrière les livres
+        // Le fond, on le met exactement dans la zone pour que ce soit sombre derrière les livres
         groupeBiblio.append("rect")
             .attr("x", x)
             .attr("y", y)
@@ -86,8 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr("fill", "#4E342E") // Très foncé
             .attr("stroke", "none");
 
-        // 2. LES MONTANTS EXTÉRIEURS (Le cadre)
-        // Montant Gauche (Dessiné à x - 20)
+        // Les montants extérieurs (le cadre quoi)
+        // Montant gauche (dessiné à x - 20)
         groupeBiblio.append("rect")
             .attr("x", x - epaisseurCadre)
             .attr("y", y)
@@ -96,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr("fill", boisCadre)
             .attr("stroke", "black");
 
-        // Montant Droit (Dessiné à x + 300)
+        // Montant droit (dessiné à x + 300)
         groupeBiblio.append("rect")
             .attr("x", x + largeurInterne)
             .attr("y", y)
@@ -115,11 +147,11 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr("stroke", "black")
             .attr("rx", 3); // Coins un peu arrondis
 
-        // 3. LES PLANCHES (Visuel seulement)
-        // On dessine un rectangle juste EN DESSOUS de la ligne où se pose le livre
-        // Pour donner l'impression que le livre est posé dessus.
+        // Les planches (visuel seulement)
+        // On dessine un rectangle juste en dessous de la ligne ou se pose le livre
+        // pour donner l'impression que le livre est posé dessus.
 
-        // Planche du haut (1er tiers)
+        // Planche du haut 
         groupeBiblio.append("rect")
             .attr("x", x)
             .attr("y", y + tier -10)
@@ -128,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr("fill", boisClair)
             .attr("stroke", "black");
 
-        // Planche du milieu (2ème tiers)
+        // Planche du milieu 
         groupeBiblio.append("rect")
             .attr("x", x)
             .attr("y", y + (tier * 2))
@@ -137,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr("fill", boisClair)
             .attr("stroke", "black");
 
-        // Planche du bas (Le sol de la biblio)
+        // Planche du bas 
         groupeBiblio.append("rect")
             .attr("x", x)
             .attr("y", y + hauteurInterne - epaisseurEtagere +10) // Juste à la fin
@@ -149,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function creerDecorFond() {
         const hauteurSol = 600; // Le niveau où le mur s'arrête (derrière le tapis)
 
-        // --- A. DEFINITION DU MOTIF PAPIER PEINT (RAYURES) ---
+        // Motif papier peint (rayures)
         let defs = svg.select("defs");
         if (defs.empty()) defs = svg.append("defs");
 
@@ -159,17 +191,17 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr("height", 40)
             .attr("patternUnits", "userSpaceOnUse");
 
-        // Fond du papier peint (Beige crème)
+        // Fond du papier peint (beige crème)
         motifMur.append("rect")
             .attr("width", 40).attr("height", 40)
             .attr("fill", "#f4a968"); // OldLace
 
-        // Rayure verticale (Beige un peu plus foncé)
+        // Rayure verticale (beige un peu plus foncé)
         motifMur.append("rect")
             .attr("width", 20).attr("height", 40)
             .attr("fill", "#FAEBD7"); // AntiqueWhite
 
-        // --- B. LE MUR ---
+        // Le mur
         groupeDecor.append("rect")
             .attr("x", -20)
             .attr("y", 0)
@@ -177,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr("height", hauteurSol)
             .attr("fill", "url(#motifPapierPeint)"); // On applique le motif
 
-        // --- C. LE SOL (PARQUET) ---
+        // Le sol
         groupeDecor.append("rect")
             .attr("x", 0-20)
             .attr("y", hauteurSol)
@@ -186,24 +218,24 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr("fill", "#8D6E63")
             .lower(); // Marron bois
 
-        // --- D. LA PLINTHE (Séparation Mur/Sol) ---
+        // Séparation mur/sol
         groupeDecor.append("rect")
             .attr("x", -20)
             .attr("y", hauteurSol - 15) // Juste au dessus du sol
             .attr("width", 800+40)
             .attr("height", 15)
-            .attr("fill", "#FFF8E1") // Blanc cassé
+            .attr("fill", "#FFF8E1") 
             .attr("stroke", "#D7CCC8"); // Petit contour gris léger
 
     }
 
-    // --- Création Zones ---
+    // Fonction pour faire les zones de placement des livres dans les biblio
     function creerZonesBiblio() {
         zonesEtagere.forEach(z => z.occupee = false);
 
         zonesEtagere.forEach((zone, i) => {
             const z = groupeBiblio.append("rect")
-                .datum(zone) // <--- INDISPENSABLE pour que 'd' existe plus tard
+                .datum(zone)
                 .attr("x", zone.x)
                 .attr("y", zone.y - 20)
                 .attr("width", 60)
@@ -270,7 +302,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Tapis ---
+    // Fonctions pour créer les cercles
+    // Tapis1 = vertical + horizontal, Tapis2 = diagonales
     function creerCercleTapis1(x, y, r) {
         groupeRoues.append("circle").attr("cx", x).attr("cy", y).attr("r", r).attr("fill", "lightgrey").attr("stroke", "black");
         groupeRoues.append("line").attr("x1", x).attr("y1", y - r).attr("x2", x).attr("y2", y + r).attr("stroke", "black");
@@ -284,48 +317,57 @@ document.addEventListener('DOMContentLoaded', () => {
         groupeRoues.append("line").attr("x1", x - d).attr("y1", y + d).attr("x2", x + d).attr("y2", y - d).attr("stroke", "black");
     }
 
+    // Cree le sol du tapis roulant avec un motif animé
     function creerSolTapis() {
-        if (!d3.select("#beltTexture").empty()) return;
-        const beltHeight = 10;
-        const beltYPosition = 760 - beltHeight;
-        const patternWidth = 20;
+        if (!d3.select("#textureTapis").empty()) return;
+        const hauteurTapis = 10;
+        const posYTapis = 760 - hauteurTapis;
+        const largeurPaterne = 20;
 
         let defs = svg.select("defs");
         if (defs.empty()) defs = svg.append("defs");
 
-        const beltPattern = defs.append("pattern")
-            .attr("id", "beltTexture")
-            .attr("width", patternWidth).attr("height", beltHeight).attr("patternUnits", "userSpaceOnUse");
-        beltPattern.append("rect").attr("width", patternWidth).attr("height", beltHeight).attr("fill", "#333");
-        beltPattern.append("line").attr("x1", patternWidth / 2).attr("y1", 0).attr("x2", patternWidth / 2).attr("y2", beltHeight).attr("stroke", "#555").attr("stroke-width", 2);
+        const paterneTapis = defs.append("pattern")
+            .attr("id", "textureTapis")
+            .attr("width", largeurPaterne).attr("height", hauteurTapis).attr("patternUnits", "userSpaceOnUse");
+        paterneTapis.append("rect").attr("width", largeurPaterne).attr("height", hauteurTapis).attr("fill", "#333");
+        paterneTapis.append("line").attr("x1", largeurPaterne / 2).attr("y1", 0).attr("x2", largeurPaterne / 2).attr("y2", hauteurTapis).attr("stroke", "#555").attr("stroke-width", 2);
 
-        svg.append("rect").attr("x", -20).attr("y", beltYPosition).attr("width", 840).attr("height", beltHeight).attr("fill", "url(#beltTexture)").attr("stroke", "none");
-        groupeTapis.append("rect").attr("x",-20).attr("y",beltHeight + beltYPosition -1).attr("width",840).attr("height",rayon*2+1).attr("fill","#333").attr("stroke","none")
+        svg.append("rect").attr("x", -20).attr("y", posYTapis).attr("width", 840).attr("height", hauteurTapis).attr("fill", "url(#textureTapis)").attr("stroke", "none");
+        groupeTapis.append("rect").attr("x",-20).attr("y",hauteurTapis + posYTapis -1).attr("width",840).attr("height",rayon*2+1).attr("fill","#333").attr("stroke","none")
     }
 
     function gererAnimationTapis(actif) {
-        const beltPattern = d3.select("#beltTexture");
-        if (beltPattern.empty()) return;
-        const patternWidth = 20;
-        let duree = patternWidth / Vitesse_Tapis;
-        let animation = beltPattern.select("animateTransform");
+        // On récupère le motif via son ID
+        const paterneTapis = d3.select("#textureTapis");
+
+        // Sécurité : si le motif n'existe pas encore, on sort
+        if (paterneTapis.empty()) return;
+
+        const largeurTapis = 20;
+        let duree = largeurTapis / Vitesse_Tapis;
+        let animation = paterneTapis.select("animateTransform");
 
         if (actif) {
+            // Si on veut activer et que l'animation n'existe pas, on l'ajoute
             if (animation.empty()) {
-                beltPattern.append("animateTransform")
+                paterneTapis.append("animateTransform")
                     .attr("attributeName", "patternTransform")
                     .attr("type", "translate")
                     .attr("from", "0 0")
-                    .attr("to", `${patternWidth} 0`)
+                    .attr("to", `${largeurTapis} 0`)
                     .attr("dur", duree + "s")
                     .attr("repeatCount", "indefinite");
             }
         } else {
+            // Si on veut désactiver et qu'elle existe, on la supprime
             if (!animation.empty()) animation.remove();
         }
     }
 
+    // Affiche un tapis complet selon le mode
     function dessinerTapis(mode) {
+        // Si un tapis est deja affiché le retire (supprime tout ce qu'il y a dans le groupe tapis)
         groupeRoues.selectAll("*").remove();
         for (let i = 0; i < nbCercles + 1; i++) {
             let x = 20 + i * rayon * 2;
@@ -336,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
         creerSolTapis();
     }
 
-    // --- Livres ---
+    // Fonction pour dessiner un livre
     function dessinerLivre(x, y, largeur = 60) {
         const livre = groupeLivres.append("g")
             .attr("class", "livre")
@@ -363,7 +405,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const infoLivre = livre.datum();
             if (infoLivre.littérature === undefined) { infoLivre.littérature = "Inconnue"; }
 
-            // Utilisation de couperEnLignes qui est maintenant accessible !
             d3.select("#infoLivre").html(`
                 <div style="display: flex; flex-direction: column; align-items: center; font-size:15px;gap: 2px; margin-bottom: 4px;">
                     <span style="font-weight: bold; font-size: 1.1em;">Titre</span>
@@ -384,6 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return livre;
     }
 
+    // Fonction pour animer un livre sur le tapis roulant
     function animerLivre(livre, xCible, yCible, duree = 10000) {
         const distance = xCible - 10;
         duree = (distance / Vitesse_Tapis) * 1000;
@@ -395,7 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function spawnLivre(livreObj) {
-        // 1. On crée le groupe et le rectangle de base via ta fonction
+        // On crée le groupe et le rectangle de base
         let livreCrée = dessinerLivre(10, 620);
         let ysol = 750;
 
@@ -406,18 +448,18 @@ document.addEventListener('DOMContentLoaded', () => {
             let hauteur = data.livreF;
             let couleur = data.livreC;
 
-            // 2. On met à jour le rectangle existant (créé par dessinerLivre)
+            // On met à jour le rectangle existant (créé par dessinerLivre)
             livreCrée.select("rect")
                 .attr("fill", couleur)
                 .attr("height", hauteur);
 
-            // 3. On AJOUTE le texte par dessus (ForeignObject)
+            // On ajoute le texte par dessus (ForeignObject)
             livreCrée.append("foreignObject")
                 .attr("x", 0)
                 .attr("y", 0)
                 .attr("width", 60)
                 .attr("height", hauteur)
-                .style("pointer-events", "none") // IMPORTANT : Permet de cliquer sur le livre à travers le texte
+                .style("pointer-events", "none") // Permet de cliquer sur le livre à travers le texte, important
                 .html(`
                     <div style="
                         width:100%; height:100%;
@@ -429,14 +471,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `);
 
-            // 4. Positionnement et Animation
+            // Positionnement et animation
             livreCrée.attr("transform", `translate(10, ${ysol - hauteur})`);
             livreCrée.datum(livreObj); // On attache les données pour le clic
             animerLivre(livreCrée, 800, ysol - hauteur);
         })
     }
 
-    // --- Gestion Animation ---
+    // Gestion animation
 
     function startAnimation() {
         if (anim == true) return;
@@ -453,7 +495,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const livreObj = tabLivres[indexLivreActuel];
                 spawnLivre(livreObj);
 
-                // --- CORRECTION CRASH INDEX ---
                 // On boucle pour ne pas dépasser la taille du tableau
                 indexLivreActuel = (indexLivreActuel + 1) % tabLivres.length;
             }
@@ -467,9 +508,9 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(animIntervalLivre);
     }
 
-    // --- Lancement Initial ---
+    // Lancement initial
     creerDecorFond()
-    dessinerTapis(mode);
+    dessinerTapis(mode); // Tapis de base avant de lanceer l'animation, mode = false de base donc c'est un Tapis2
     dessinerBiblio(50, 40);
     dessinerBiblio(450, 40);
     creerZonesBiblio();
@@ -483,20 +524,18 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("l'animation s'arrête");
     })
 
-    // --- C'EST ICI QU'ON MET LE CODE ADVERSE (A l'intérieur de DOMContentLoaded) ---
+    // Livre adverse
     socket.on('LivreAdverse', (data) => {
         // On cherche dans le groupeLivres un livre qui a le même titre que celui placé
         groupeLivres.selectAll(".livre")
             .filter(function(d) { return d && d.titre === data.titre; }) // On filtre par titre
             .remove(); // On le supprime du DOM
-        // 1. On sélectionne TOUTES les zones de placement
+        // On sélectionne toutes les zones de placement
         d3.selectAll(".zonePlacement")
-            // 2. On garde UNIQUEMENT celle qui a le bon index
+            // On garde que celle qui a le bon index
             .filter((d, i) => i === data.index)
             .each(function(d) {
-                // MAINTENANT 'd' EXISTE car on est dans la portée où .datum() a été appliqué
-
-                // A. On marque la zone comme occupée
+                // On marque la zone comme occupée
                 d.occupee = true;
 
                 // Calcul de la position
@@ -505,8 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let zoneY = parseFloat(d3.select(this).attr("y"));
                 let nouveauY = zoneY + 130 + 20 - hauteurLivre;
 
-                // B. On dessine le livre adverse
-                // MAINTENANT 'groupeLivres' EXISTE car on est dans la même portée
+                // On dessine le livre adverse
                 groupeLivres.append("g")
                     .attr("transform", `translate(${zoneX}, ${nouveauY})`)
                     .html(`
@@ -524,14 +562,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     `);
             });
     });
-    // Dans AppD3.js
 
     socket.on('ChangementTour', (indexTour) => {
         // numJoueur est défini dans index.html
         if (indexTour === numJoueur) {
             estMonTour = true;
             console.log("C'est à moi de jouer !");
-            // Optionnel : Changer visuellement (bordure verte, texte...)
             d3.select("#infoLivre").style("border", "5px solid green");
         } else {
             estMonTour = false;
@@ -545,4 +581,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 });
-// fin de DOMContentLoaded
