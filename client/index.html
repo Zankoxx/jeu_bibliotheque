@@ -7,9 +7,9 @@
     <script src="/socket.io/socket.io.js"></script>
     <link rel="stylesheet" href="styles.css">
     <script>
+        window.socket = io()
+        const socket = window.socket
 
-        
-        const socket = io();
         let tabJoueurs = [];
         var numJoueur = -1;
         let scoreA_actuel = 0;
@@ -254,8 +254,8 @@
     </div>
 
     <div id="scoreJoueurs">
-        <div id="scoreJoueurA">...</div>
         <div id="scoreJoueurB">...</div>
+        <div id="scoreJoueurA">...</div>
         <div id="AffichageScore"></div>
     </div>
     <div id = "infoLivre">Aucun livre</div>
