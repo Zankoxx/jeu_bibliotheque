@@ -151,6 +151,9 @@ io.on('connection', (socket) => {
         console.log(listeEtageres);
         console.log("On va faire démarrer l'animation")
     })
+    socket.on('ArrêterPartie', () => {
+        io.emit('StopAnimation')
+    })
 
 
     // reception du livre quand il est placé dans la bibliothèque
@@ -261,69 +264,3 @@ function EstOrdreAlphabetiqueTitre(etagere) {
     return true;
 }
 
-function comptagePoints() {
-    let score = 0;
-    function estComplete(etagere) {
-        return etagere.every(livre => livre !== null && livre !== 0);
-    }
-
-    for (let e = 0; e < NbEtagereT; e++) {
-        const etagere = listeEtageres[e];
-        const criteres = ["auteur", "genre", "littérature"];
-        criteres.forEach(critere => {
-            let chaineLongueur = 1;
-            for (let i = 1; i < nbLivresEtagere; i++) {
-                const prev = etagere[i - 1];
-                const curr = etagere[i];
-                if (!prev || !curr) {
-                    chaineLongueur = 1;
-                    continue;
-                }
-                if (prev[critere] === curr[critere]) {
-                    chaineLongueur++;
-                    score += chaineLongueur;
-                } else {
-                    chaineLongueur = 1;
-                }
-            }
-        });
-
-        let chainAlpha = 1;
-        for (let i = 1; i < nbLivresEtagere; i++) {
-            const prev = etagere[i - 1];
-            const curr = etagere[i];
-            if (!prev || !curr) {
-                chainAlpha = 1;
-                continue;
-            }
-            if (prev.auteur.localeCompare(curr.auteur) <= 0) {
-                chainAlpha++;
-                score += chainAlpha * 2;
-            } else {
-                chainAlpha = 1;
-            }
-        }
-
-        if (estComplete(etagere)) {
-            let tousGenre = true;
-            let tousAuteur = true;
-            let tousLitt = true;
-
-            const genreRef = etagere[0].genre;
-            const auteurRef = etagere[0].auteur;
-            const littRef = etagere[0].littérature;
-
-            for (let i = 1; i < nbLivresEtagere; i++) {
-                if (etagere[i].genre !== genreRef) tousGenre = false;
-                if (etagere[i].auteur !== auteurRef) tousAuteur = false;
-                if (etagere[i].littérature !== littRef) tousLitt = false;
-            }
-
-            if (tousGenre) { score += 20; }
-            if (tousAuteur) { score += 30; }
-            if (tousLitt) { score += 15; }
-        }
-    }
-    console.log("➡️ Score total actuel :", score);
-    return score;
-}

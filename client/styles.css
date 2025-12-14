@@ -73,6 +73,14 @@ body {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     color: white;
 }
+#AffichageScore /* affiche des score des joueurs en temps réel */ {
+    font-size: 14px;
+    margin-top: 8px;
+    color: #4a5568;
+    width : 100%;
+}
+
+
 
 /* Info livre */
 #infoLivre {

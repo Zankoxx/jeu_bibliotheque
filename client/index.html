@@ -217,18 +217,13 @@
         socket.on("disconnect", (reason) => {
             console.log("Connexion au serveur perdue !");
             ajouterMessageChat("🔴 Connexion perdue...", "system");
-
+            socket.emit('ArrêterPartie')
             // Tu peux griser l'interface ou bloquer les boutons ici
         });
 
         // Quand le serveur revient (Socket.io se reconnecte tout seul)
         socket.on("connect", () => {
             console.log("Connexion retrouvée !");
-
-            // ⚠️ ATTENTION IMPORTANTE :
-            // Si le serveur a redémarré, IL A PERDU TOUTE SA MÉMOIRE (variables).
-            // Tes tableaux 'joueurs' et 'scores' côté serveur sont vides (remis à zéro).
-            // Mais ton client, lui, croit qu'il est encore dans la partie.
 
             if (numJoueur !== -1) {
                 ajouterMessageChat("🟢 Serveur redémarré. Veuillez vous reconnecter.", "system");
@@ -261,6 +256,7 @@
     <div id="scoreJoueurs">
         <div id="scoreJoueurA">...</div>
         <div id="scoreJoueurB">...</div>
+        <div id="AffichageScore"></div>
     </div>
     <div id = "infoLivre">Aucun livre</div>
 </div>
