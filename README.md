@@ -1,17 +1,17 @@
-# 📚 Jeu de Bibliothèque Multijoueur
+#  Jeu de Bibliothèque Multijoueur
 
 **Projet de Développement Web - Année 2025**
 
 Ce projet est une application web multijoueur en temps réel où deux joueurs incarnent des bibliothécaires. Le but est de récupérer des livres défilant sur un tapis roulant et de les classer stratégiquement dans une bibliothèque pour maximiser son score selon des règles de tri précises.
 
-## 👥 Participants
+##  Participants
 
 * **Jean** : Développement Front-end, visualisation de données et animations (D3.js).
 * **Anir** : Développement Back-end, communication temps réel (Socket.io) et logique serveur.
 
 ---
 
-## 🚀 Installation et Lancement
+##  Installation et Lancement
 
 ### Prérequis
 * Node.js installé sur la machine.
@@ -59,7 +59,7 @@ Le serveur calcule le score en temps réel selon des algorithmes de tri :
 
 ---
 
-## 📸 Interface du Jeu
+##  Interface du Jeu
 
 ### Le Lobby
 *Écran de connexion permettant de choisir son pseudo et de discuter via le chat en attendant l'adversaire.*
@@ -71,7 +71,7 @@ Le serveur calcule le score en temps réel selon des algorithmes de tri :
 
 ---
 
-## 📂 Structure des Fichiers
+##  Structure des Fichiers
 
 * **`serveur.js`** : Point d'entrée de l'application. Contient la configuration Express, la gestion des WebSockets et l'algorithme de calcul des scores.
 * **`client/`** :
