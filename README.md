@@ -58,7 +58,8 @@ Le calcul des points est effectué côté serveur à chaque coup joué pour évi
 
 
 ### Vue générale
-<img width="2229" height="1294" alt="image" src="https://github.com/user-attachments/assets/da3ff54f-928f-4a20-a8eb-2a2152654153" />
+<img width="2299" height="1277" alt="image" src="https://github.com/user-attachments/assets/58d492dc-6763-4c43-a994-53b0404b4bca" />
+
 
 
 
