@@ -60,7 +60,11 @@ Le calcul des points est effectué côté serveur à chaque coup joué pour évi
 ### Vue générale
 <img width="2299" height="1277" alt="image" src="https://github.com/user-attachments/assets/58d492dc-6763-4c43-a994-53b0404b4bca" />
 
+## Fonctionnement tout par tour
+*Vert si c'est votre tour et Rouge sinon*
 
+<img width="378" height="276" alt="image" src="https://github.com/user-attachments/assets/2f58376b-96cd-4b73-8f43-17cfaaa2e417" />
+<img width="384" height="289" alt="image" src="https://github.com/user-attachments/assets/ae8e2668-88b9-4341-9c3c-e7fcd6b0289c" />
 
 
 
